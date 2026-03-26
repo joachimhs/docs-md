@@ -1,0 +1,127 @@
+/** Frontmatter fields parsed from a document's YAML header */
+export interface DocFrontmatter {
+  title: string;
+  type?: string;
+  status?: string;
+  owner?: string;
+  created?: string;
+  updated?: string;
+  tags?: string[];
+  id?: string;
+  summary?: string;
+  priority?: string;
+  assignee?: string | string[];
+  due_date?: string;
+  supersedes?: string;
+  superseded_by?: string;
+  related?: string[];
+  version?: string;
+  audience?: string[];
+  decision_date?: string;
+  participants?: string[];
+  template?: string;
+  [key: string]: unknown;
+}
+
+/** A document as represented in the manifest */
+export interface ManifestEntry {
+  id: string;
+  title: string;
+  type: string;
+  status: string;
+  owner: string;
+  created: string;
+  updated: string;
+  tags: string[];
+  path: string;
+  summary: string;
+  word_count: number;
+}
+
+/** The complete manifest file structure */
+export interface Manifest {
+  generated: string;
+  version: string;
+  document_count: number;
+  documents: ManifestEntry[];
+}
+
+/** A fully parsed document ready for rendering */
+export interface ParsedDocument {
+  frontmatter: DocFrontmatter;
+  body: string;
+  html: string;
+  path: string;
+  headings: DocHeading[];
+}
+
+/** A heading extracted from the document body */
+export interface DocHeading {
+  level: number;
+  text: string;
+  slug: string;
+}
+
+/** Search result returned to the UI */
+export interface SearchResult {
+  id: string;
+  title: string;
+  type: string;
+  status: string;
+  path: string;
+  score: number;
+  snippet: string;
+  tags: string[];
+  updated: string;
+}
+
+/** Active search filters */
+export interface SearchFilters {
+  type: string | null;
+  status: string | null;
+  tags: string[];
+  owner: string | null;
+}
+
+/** Search response including facets */
+export interface SearchResponse {
+  query: string;
+  total: number;
+  results: SearchResult[];
+  facets: {
+    type: Record<string, number>;
+    status: Record<string, number>;
+    tags: Record<string, number>;
+  };
+}
+
+/** Document type configuration (from .specmd.yml or defaults) */
+export interface DocTypeConfig {
+  label: string;
+  plural: string;
+  folder: string;
+  statuses: string[];
+  default_status: string;
+  icon: string;
+}
+
+/** The .specmd.yml configuration file structure */
+export interface SpecMDConfig {
+  spec_version: string;
+  project: {
+    name: string;
+    description?: string;
+    logo?: string;
+  };
+  types: Record<string, DocTypeConfig>;
+  search?: {
+    fuzzy_threshold?: number;
+    result_limit?: number;
+    snippet_length?: number;
+  };
+  ui?: {
+    theme?: 'light' | 'dark' | 'auto';
+    sidebar_default?: 'expanded' | 'collapsed';
+    default_editor?: 'richtext' | 'markdown';
+  };
+}
