@@ -6,7 +6,8 @@ import rehypeStringify from 'rehype-stringify';
 import rehypeShiki from '@shikijs/rehype';
 import rehypeSlug from 'rehype-slug';
 
-let processor: ReturnType<typeof unified> | null = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let processor: any = null;
 
 async function getProcessor() {
   if (processor) return processor;
