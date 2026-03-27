@@ -9,13 +9,71 @@ tags: [setup, development]
 
 # Getting Started
 
-## Prerequisites
+## Option A: CLI (for users)
+
+### Install globally
+
+```bash
+npm i -g docsmd
+```
+
+Requires Node.js 20+.
+
+### Initialize in a git repo
+
+```bash
+cd my-project
+docsmd init "My Project"
+```
+
+This creates:
+- `docs/` with subfolders for each document type (`adr/`, `spec/`, `guide/`, etc.)
+- `docs/_templates/` with 7 pre-filled templates
+- `docs/_assets/` for uploaded images
+- `docs/.docsmd.yml` with project name
+- `docs/overview.md` welcome page
+
+### Browse
+
+```bash
+docsmd browse
+```
+
+Opens the web UI at `http://localhost:5176`. Use `--port 8080` for a different port, `--no-open` to skip auto-opening the browser.
+
+### Generate agent instructions
+
+```bash
+docsmd init "My Project" --ai
+```
+
+Creates `DOCSMD.md` at the repo root with instructions for AI coding agents (document types, frontmatter fields, reading/writing rules).
+
+### CLI search
+
+```bash
+docsmd search "authentication"
+docsmd search "authentication" --type adr
+docsmd search "authentication" --plain    # tab-separated for scripting
+```
+
+### Document summary
+
+```bash
+docsmd manifest
+```
+
+Prints total document count and per-type breakdown.
+
+## Option B: Development (for contributors)
+
+### Prerequisites
 
 - Node.js 20+
 - npm
-- Git (for commit/push/history features)
+- Git
 
-## Install and Run
+### Install and run
 
 ```bash
 cd docsmd
@@ -23,20 +81,56 @@ npm install
 DOCSMD_DOCS_DIR=docs npm run dev
 ```
 
-The dev server starts at `http://localhost:5176` (configured in `vite.config.ts`).
+Dev server at `http://localhost:5176`. Set `DOCSMD_DOCS_DIR=test-docs` for sample documentation.
 
-## Environment Variables
+### Build
+
+```bash
+npm run build        # builds both web app + CLI
+npm run build:web    # SvelteKit adapter-node output → build/
+npm run build:cli    # tsup ESM output → dist/cli/
+```
+
+### Test the built CLI locally
+
+```bash
+node dist/cli/index.js --version
+node dist/cli/index.js --help
+node dist/cli/index.js browse --no-open
+```
+
+### Environment variables
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `DOCSMD_REPO_ROOT` | `process.cwd()` | Root directory. |
-| `DOCSMD_DOCS_DIR` | `docs` | Docs directory name relative to repo root. |
+| `DOCSMD_REPO_ROOT` | `process.cwd()` | Root directory |
+| `DOCSMD_DOCS_DIR` | `docs` | Docs directory name relative to repo root |
 
-## Browsing Documents
+## Writing Documents
 
-The landing page shows document type cards and recently updated documents. The sidebar groups all documents by type. Click any document to view it rendered with syntax highlighting, metadata badges, and a table of contents.
+### File naming convention
 
-Use `Ctrl+K` / `Cmd+K` to focus the search bar. Field-specific queries narrow results:
+```
+docs/{type}/{type}-{NNN}-{slug}.md
+```
+
+Examples: `adr-001-use-postgresql.md`, `guide-003-deployment.md`. The number provides ordering, the slug is descriptive.
+
+### Frontmatter
+
+```yaml
+---
+title: "Use PostgreSQL as Primary Database"    # required
+type: adr                                       # inferred from folder if omitted
+status: accepted                                # defaults to type's default
+owner: "@alice"
+created: "2026-03-27"
+updated: "2026-03-27"
+tags: [database, infrastructure]
+---
+```
+
+### Search syntax
 
 | Syntax | Effect |
 |--------|--------|
@@ -45,83 +139,15 @@ Use `Ctrl+K` / `Cmd+K` to focus the search bar. Field-specific queries narrow re
 | `status:draft` | Only drafts |
 | `type:adr PostgreSQL` | ADRs mentioning PostgreSQL |
 
-## Editing Documents
+Works in both the web UI search bar (`Ctrl+K`) and `docsmd search`.
 
-Click **Edit** on any document to open the dual-mode editor at `/edit/{path}`.
+## Editing
 
-### Editor Modes
-
-**Rich Text** (default) — WYSIWYG editing powered by Milkdown. Supports bold, italic, headings, lists, code blocks, tables, and task lists. Type `/` in an empty line for slash commands.
-
-**Markdown** — Raw source editing with CodeMirror. Syntax highlighting, line numbers, bracket matching. An optional live preview pane shows the rendered output alongside the source.
-
-Switch between modes using the segmented toggle in the toolbar. Content is preserved across mode switches.
-
-### Keyboard Shortcuts (Markdown mode)
-
-| Shortcut | Action |
-|----------|--------|
-| `Ctrl+B` / `Cmd+B` | Bold |
-| `Ctrl+I` / `Cmd+I` | Italic |
-| `Ctrl+K` / `Cmd+K` | Insert link |
-| `Ctrl+S` / `Cmd+S` | Save |
-
-### Images
-
-Paste or drag-and-drop an image into either editor. The image is uploaded to `docs/_assets/` and a Markdown reference is inserted automatically.
-
-### Save, Commit, Push
-
-The editor toolbar has three action buttons:
-
-1. **Save** — Writes the file to disk. Enabled when there are unsaved changes.
-2. **Commit** — Opens a commit message prompt (pre-filled with `docs({type}): update — {title}`). Stages the document and manifest, creates a git commit.
-3. **Push** — Pushes committed changes to the remote. Enabled when commits are ahead.
-
-The status bar at the bottom shows word count, dirty state, and last saved time.
-
-### Frontmatter Form
-
-The structured form above the editor handles all frontmatter fields:
-- **Title** — Required text field
-- **Type** — Dropdown populated from config types
-- **Status** — Dropdown filtered to the selected type's valid statuses
-- **Owner** — Text input (convention: `@username`)
-- **Tags** — Type and press Enter to add, click X to remove
-
-Created and updated dates are managed automatically.
-
-## Creating New Documents
-
-Click **+ New** in the header to start the creation workflow:
-
-1. Select a document type from the card grid
-2. Fill in the frontmatter form (title auto-focuses)
-3. Write the body content
-4. Click **Create Document**
-
-The file is saved as `{type}/{type}-{NNN}-{slug}.md` with sequential numbering. You're redirected to the editor on success.
-
-## Git History and Diffs
-
-Click **History** on any document to see its commit timeline at `/history/{path}`. Each entry shows the commit hash, author, relative time, and message.
-
-Click **View diff** on any commit to see the changes at `/diff/{path}?from={hash}`. Toggle between unified and side-by-side diff views.
-
-## Git Status Indicators
-
-The header shows:
-- **Branch name** (e.g., `main`)
-- **Modified count** — orange badge showing uncommitted changes in docs/
-- **Ahead/behind** — `↑2` means 2 commits ahead of remote
-
-The sidebar shows orange dots next to documents that have been modified but not committed.
+Click **Edit** on any document to open the dual-mode editor. Toggle between Rich Text (WYSIWYG) and Markdown (source + preview). Save writes to disk, Commit creates a git commit, Push pushes to remote. See the [Configuration Reference](guide/guide-002-configuration) for the `default_editor` setting.
 
 ## Running Tests
 
 ```bash
 npm test              # 72 vitest tests
-npm run check         # svelte-kit sync + svelte-check
+npm run check         # svelte-check type verification
 ```
-
-Tests cover all 6 server modules: config, docs (read + CRUD), git, markdown, manifest, search.

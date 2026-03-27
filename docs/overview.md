@@ -9,96 +9,102 @@ tags: [overview]
 
 # docs.md
 
-docs.md is a documentation authoring tool built on SvelteKit 2 and Svelte 5. It reads Markdown files with YAML frontmatter from a `docs/` folder, serves them as a navigable web application, and provides a full editing and Git integration layer.
+docs.md is a documentation authoring tool and CLI. It reads Markdown files with YAML frontmatter from a `docs/` folder, serves them as a web application with editing and Git integration, and packages as a globally installable npm CLI.
 
-## Current State (Phase 2 Complete)
+## Current State (Phase 3 Complete)
 
-Phases 1 and 2 are implemented. docs.md is a complete local documentation authoring tool.
+Phases 1-3 are implemented. docs.md is a distributable documentation tool.
 
-### Browsing
+### CLI
 
-- Sidebar navigation grouped by document type with collapsible sections
-- Full-text search via FlexSearch with field-specific queries (`type:adr`, `tag:security`, `status:draft`)
-- Markdown rendering with GFM support (tables, task lists, strikethrough, autolinks)
-- Syntax highlighting via Shiki with paired github-light and github-dark themes
-- YAML frontmatter with structured metadata display (badges, dates, tags, owners)
-- Table of contents auto-generated from headings with scroll tracking
-- Light/dark/auto theme with `prefers-color-scheme` detection and localStorage persistence
+```bash
+npm i -g docsmd
+```
+
+| Command | Description |
+|---------|-------------|
+| `docsmd browse` | Launch the web UI (default port 5176) |
+| `docsmd init [name]` | Scaffold `docs/` folder in current git repo |
+| `docsmd init --ai` | Also generate `DOCSMD.md` agent instructions |
+| `docsmd manifest` | Print document count and type breakdown |
+| `docsmd search <query>` | Search docs from the terminal |
+
+### Web UI — Browsing
+
+- Sidebar navigation grouped by document type
+- Full-text search with field-specific queries (`type:adr`, `tag:security`)
+- Markdown rendering with GFM, syntax highlighting (Shiki dual themes)
+- Frontmatter metadata display (badges, dates, tags, owners)
+- Table of contents with scroll tracking
+- Light/dark/auto theme
 - Responsive layout with mobile sidebar overlay
 
-### Editing
+### Web UI — Editing
 
 - Dual-mode editor: WYSIWYG (Milkdown/Crepe) and Markdown source (CodeMirror)
-- Structured frontmatter form — title, type, status, owner, tags — no raw YAML exposure
-- Live Markdown preview pane (debounced, server-rendered)
-- Image paste/drop upload in both editors
-- Keyboard shortcuts: `Ctrl+B` (bold), `Ctrl+I` (italic), `Ctrl+K` (link), `Ctrl+S` (save)
-- New document creation workflow with type selection and sequential naming
-- Document archiving (soft-delete to `_archive/`)
+- Structured frontmatter form — no raw YAML
+- Live Markdown preview pane
+- Image paste/drop upload
+- New document creation with type selection and sequential naming
+- Document archiving (soft-delete)
 
-### Git Integration
+### Web UI — Git
 
-- Save to disk, commit with message, push to remote — all from the editor toolbar
-- Git status indicators in header: branch name, modified count, ahead/behind
-- Modified document dots in sidebar
-- Git history timeline per document with commit entries
-- Side-by-side and unified diff viewer using diff2html
-- View file content at any historical commit
+- Save, commit, push from the editor toolbar
+- Git status in header (branch, modified count, ahead/behind)
+- Modified dots in sidebar
+- Git history timeline and diff viewer (unified + side-by-side)
 
 ### What's Planned
 
-- Phase 3: npm CLI packaging (`docsmd browse`, `docsmd init`), AI agent discoverability
 - Phase 4: Authentication (OAuth + simple auth), static site export, Docker deployment, file watcher
 
-## Running the Application
+## Quick Start
+
+### Development
 
 ```bash
+cd docsmd
 npm install
 DOCSMD_DOCS_DIR=docs npm run dev
 ```
 
-Opens at `http://localhost:5176`. Set `DOCSMD_DOCS_DIR=test-docs` to browse the sample documentation.
+Opens at `http://localhost:5176`.
 
-To point at another repository:
+### Production (CLI)
 
 ```bash
-DOCSMD_REPO_ROOT=/path/to/repo npm run dev
+npm run build                    # Build web + CLI
+node dist/cli/index.js browse   # Start server
+```
+
+Or after `npm i -g docsmd`:
+
+```bash
+cd my-project
+docsmd init "My Project"
+docsmd browse
 ```
 
 ## Project Layout
 
 ```
 docsmd/
-  src/
+  cli/                              CLI source (built with tsup)
+    index.ts                        Commander.js entry point
+    commands/                       browse, init, manifest, search
+    lib/                            Standalone scanner + logger
+  src/                              SvelteKit web application
     lib/
-      types/index.ts              10 TypeScript interfaces
-      server/                     6 server-only modules (config, docs, git, markdown, manifest, search)
-      stores/                     4 Svelte 5 runes stores (docs, git, search, ui)
-      components/                 16 Svelte components
-    routes/
-      +layout.server.ts           Loads manifest and config
-      +layout.svelte              App shell (header with git status, sidebar, main, footer)
-      +page.svelte                Landing page with type reference and agent instructions
-      doc/[...path]/              Document viewer
-      edit/[...path]/             Document editor (dual-mode)
-      new/                        New document creation workflow
-      search/                     Search results page
-      history/[...path]/          Git commit history timeline
-      diff/[...path]/             Git diff viewer
-      api/
-        docs/                     Document listing + creation
-        docs/[id]/                Single document GET/PUT/DELETE
-        git/status/               Git status
-        git/history/              File commit history
-        git/diff/                 File diff
-        git/commit/               Commit changes
-        git/push/                 Push to remote
-        assets/                   Image upload
-        assets/[...filename]/     Image serving
-        preview/                  Markdown → HTML rendering
-        search/                   Full-text search
-        manifest/                 Manifest regeneration
-  test-docs/                      11 sample documents for development
-  docs/                           This documentation
-  tests/                          72 vitest tests covering all server modules
+      types/                        TypeScript interfaces
+      server/                       6 server modules
+      stores/                       4 Svelte 5 runes stores
+      components/                   16 Svelte components
+    routes/                         Pages + 15 API endpoints
+  templates/                        7 document templates + default config
+  build/                            SvelteKit adapter-node output (gitignored)
+  dist/                             Compiled CLI (gitignored)
+  test-docs/                        11 sample documents for testing
+  docs/                             This documentation
+  tests/                            72 vitest tests
 ```

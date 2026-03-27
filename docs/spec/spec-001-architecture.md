@@ -23,12 +23,37 @@ owner: "@docsmd"
 - **@milkdown/crepe** for WYSIWYG Markdown editing
 - **CodeMirror 6** for Markdown source editing
 - **diff2html** for rendering Git diffs
+- **commander** for CLI command parsing
+- **chalk** for terminal output styling
+- **tsup** for CLI bundling (ESM, externals)
 - **vitest** for unit testing
+
+## Two Codebases
+
+The project has two separate codebases with separate build steps:
+
+1. **`src/`** — SvelteKit web application, built with Vite + adapter-node → `build/`
+2. **`cli/`** — Node.js CLI, built with tsup → `dist/cli/`
+
+The CLI cannot import from `$lib/server/` (SvelteKit module aliases don't exist outside Vite). Instead, `cli/lib/scan.ts` duplicates the core document scanning logic using only `gray-matter` and `node:fs`. The web app and CLI share runtime dependencies (`gray-matter`, `flexsearch`, `simple-git`, `js-yaml`) but are otherwise independent.
+
+The `browse` command bridges them: it starts an HTTP server that loads the pre-built SvelteKit handler from `build/handler.js`.
 
 ## Project Structure
 
 ```
 docsmd/
+  cli/                              CLI source (separate from SvelteKit)
+    index.ts                        Commander.js entry: browse, init, manifest, search
+    commands/
+      browse.ts                     Start pre-built SvelteKit server
+      init.ts                       Scaffold docs/ folder + templates
+      manifest.ts                   Print document summary
+      search.ts                     FlexSearch-powered terminal search
+    lib/
+      scan.ts                       Standalone doc scanner (no $lib)
+      logger.ts                     Chalk output helpers
+  templates/                        Bundled document templates (7 types + config)
   src/
     lib/
       types/index.ts              All TypeScript interfaces
@@ -114,6 +139,26 @@ In-memory document index. `generateManifest()` calls `scanDocs()` and caches the
 ### search.ts
 
 FlexSearch Document index with 5 fields (title, body, tags, headings, owner). `parseFieldPrefixes()` extracts `type:`, `tag:`, `status:`, `owner:` from query strings. `searchDocs()` combines free-text FlexSearch results with filter matching. Includes snippet generation with `<mark>` highlighting.
+
+## CLI Modules
+
+All in `cli/`. Built with tsup separately from the SvelteKit app. Cannot use `$lib` imports.
+
+### cli/lib/scan.ts
+
+Standalone document scanner. Reimplements the core of `src/lib/server/docs.ts` using only `gray-matter` and `node:fs`. Exports `scanDocs(docsRoot): DocEntry[]` which recursively walks a directory, parses `.md` files, infers types from folder names, generates IDs, extracts summaries, and counts words. Used by the `manifest` and `search` commands.
+
+### cli/commands/browse.ts
+
+Loads `build/handler.js` (the pre-built SvelteKit app) and serves it via `http.createServer()`. Sets `DOCSMD_REPO_ROOT` so the web app reads from the correct repository. Validates git repo and docs/ existence before starting.
+
+### cli/commands/init.ts
+
+Scaffolds `docs/` with subfolders, copies templates from the bundled `templates/` directory, writes `.docsmd.yml` and `overview.md`. The `--ai` flag generates `DOCSMD.md` with agent instructions.
+
+### cli/commands/search.ts
+
+Builds a FlexSearch Document index from `scanDocs()` output. Indexes title (forward tokenizer), body (strict, Markdown stripped), and tags (strict). Supports type/status filtering and plain output mode.
 
 ## Stores
 
