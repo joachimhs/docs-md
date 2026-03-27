@@ -14,9 +14,12 @@
   // and destroy on cleanup.
   let crepeInstance: import('@milkdown/crepe').Crepe | undefined;
 
-  // Track the last markdown value we pushed into the editor so we can avoid
-  // feedback loops in the $effect below.
-  let lastPushedContent = $state('');
+  // Track content origin to avoid feedback loops.
+  // When the editor emits a change, we set this flag so the $effect
+  // knows NOT to push the content back into the editor (which would
+  // reset the cursor position).
+  let lastEmittedContent = '';
+  let lastExternalContent = '';
 
   async function uploadImage(file: File): Promise<string> {
     const form = new FormData();
@@ -36,7 +39,8 @@
       // Dynamic imports keep all of this out of the SSR bundle.
       const { Crepe } = await import('@milkdown/crepe');
 
-      lastPushedContent = content;
+      lastExternalContent = content;
+      lastEmittedContent = content;
 
       const crepe = new Crepe({
         root: editorEl,
@@ -56,9 +60,11 @@
         },
       });
 
-      // Listen for markdown changes
+      // Listen for markdown changes — track what we emitted so the
+      // $effect below knows not to push it back (which would reset cursor).
       crepe.on((listener) => {
         listener.markdownUpdated((_ctx, markdown, _prev) => {
+          lastEmittedContent = markdown;
           onchange(markdown);
         });
       });
@@ -78,21 +84,32 @@
     crepeInstance = undefined;
   });
 
-  // Sync external `content` prop into the editor without causing feedback loops.
-  // We use `getMarkdown` + `replaceAll` via the Crepe helper which exposes
-  // the underlying ProseMirror action API synchronously.
+  // Sync external `content` prop into the editor ONLY when the change
+  // did NOT originate from the editor itself. This prevents replaceAll
+  // from firing on every keystroke (which resets the cursor to the end).
+  //
+  // The flow:
+  //   Editor keystroke → markdownUpdated → lastEmittedContent = X, onchange(X)
+  //   Parent sets body = X → content prop = X
+  //   This $effect sees content === lastEmittedContent → skips (no cursor reset)
+  //
+  // External change (mode switch, initial load):
+  //   Parent sets body = Y → content prop = Y
+  //   This $effect sees content !== lastEmittedContent → calls replaceAll
   $effect(() => {
     const nextContent = content;
-    if (!crepeInstance || nextContent === lastPushedContent) return;
+    if (!crepeInstance) return;
+    // Skip if this content came from the editor's own output
+    if (nextContent === lastEmittedContent) return;
+    // Skip if we already pushed this exact content
+    if (nextContent === lastExternalContent) return;
 
-    // Import and run replaceAll as a synchronous editor action.
-    // We use a fire-and-forget dynamic import here since replaceAll itself
-    // is synchronous once loaded.
+    lastExternalContent = nextContent;
+
     import('@milkdown/kit/utils').then(({ replaceAll }) => {
       crepeInstance!.editor.action(replaceAll(nextContent));
+      lastEmittedContent = nextContent;
     }).catch(console.error);
-
-    lastPushedContent = nextContent;
   });
 
   // Sync readonly prop
