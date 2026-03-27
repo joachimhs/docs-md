@@ -82,7 +82,7 @@
   }
 
   async function handleCommit() {
-    const defaultMsg = `docs(${frontmatter.type ?? 'doc'}): update — ${frontmatter.title}`;
+    const defaultMsg = `[DOCS.MD] docs(${frontmatter.type ?? 'doc'}): update — ${frontmatter.title}`;
     const message = window.prompt('Commit message:', defaultMsg);
     if (message === null) return; // cancelled
 
