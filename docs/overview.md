@@ -9,7 +9,9 @@ tags:
 ---
 # docs.md
 
-docs.md is a documentation authoring tool and CLI. It reads Markdown files with YAML frontmatter from a `docs/` folder, serves them as a web application with editing and Git integration, and packages as a globally installable npm CLI. 
+docs.md is a documentation authoring tool and CLI. It reads Markdown files with YAML frontmatter from a `docs/` folder, serves them as a web application with editing and Git integration, and packages as a globally installable npm CLI.
+
+Test commit and push
 
 ## Current State (Phase 3 Complete)
 
