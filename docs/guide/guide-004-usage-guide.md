@@ -452,6 +452,12 @@ Two viewing modes:
 
 Toggle between modes with the buttons at the top.
 
+### Live file watching
+
+The server watches `docs/**/*.md` for external changes using chokidar. When files are added, modified, or deleted outside the web UI (by a text editor, AI agent, git pull, etc.), the manifest and search index are automatically invalidated. The next page load or search query picks up the new state — no server restart needed.
+
+The watcher uses a 300ms stability threshold (waits for writes to finish) and a 500ms debounce (batches rapid changes into one reindex).
+
 ### Non-Git environments
 
 If the project directory is not a Git repository:

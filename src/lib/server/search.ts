@@ -26,6 +26,15 @@ let docMap: Map<string, ManifestEntry> = new Map();
 let bodyMap: Map<string, string> = new Map();
 
 /**
+ * Invalidate the search index so it rebuilds on the next query.
+ */
+export function invalidateSearchIndex(): void {
+  index = null;
+  docMap.clear();
+  bodyMap.clear();
+}
+
+/**
  * Strip Markdown formatting to get plain text suitable for indexing and snippets.
  */
 function stripMarkdown(md: string): string {

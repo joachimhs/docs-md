@@ -134,7 +134,11 @@ Cached unified processor pipeline: `remarkParse → remarkGfm → remarkRehype �
 
 ### manifest.ts
 
-In-memory document index. `generateManifest()` calls `scanDocs()` and caches the result. `getManifest()` returns cache or regenerates. `invalidateManifest()` clears the cache. Nothing is written to disk — the manifest exists only in the server process. All CRUD operations in docs.ts call invalidate + regenerate.
+In-memory document index. `generateManifest()` calls `scanDocs()` and caches the result. `getManifest()` returns cache or regenerates. `invalidateManifest()` clears the cache. Nothing is written to disk — the manifest exists only in the server process. All CRUD operations in docs.ts call invalidate + regenerate. The file watcher (`watcher.ts`) also calls `invalidateManifest()` when external changes are detected.
+
+### watcher.ts
+
+Watches `docs/**/*.md` with chokidar for external file changes (from editors, AI agents, git operations). When a `.md` file is added, changed, or removed, the manifest and search index are invalidated so the next request picks up the new state. Uses `awaitWriteFinish` (300ms stability threshold) to avoid partial-write triggers, and debounces reindexing by 500ms. Started once on first page load from `+layout.server.ts`.
 
 ### search.ts
 

@@ -97,7 +97,7 @@ docsmd/
   src/                              SvelteKit web application
     lib/
       types/                        TypeScript interfaces
-      server/                       6 server modules
+      server/                       7 server modules (incl. file watcher)
       stores/                       4 Svelte 5 runes stores
       components/                   16 Svelte components
     routes/                         Pages + 15 API endpoints

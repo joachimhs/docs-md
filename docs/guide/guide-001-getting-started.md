@@ -145,6 +145,10 @@ Works in both the web UI search bar (`Ctrl+K`) and `docsmd search`.
 
 Click **Edit** on any document to open the dual-mode editor. Toggle between Rich Text (WYSIWYG) and Markdown (source + preview). Save writes to disk, Commit creates a git commit, Push pushes to remote. See the [Configuration Reference](guide/guide-002-configuration) for the `default_editor` setting.
 
+## Live File Watching
+
+The server automatically detects when `.md` files in docs/ are changed externally (by your editor, an AI agent, a git pull, etc.). The sidebar, search, and landing page update on the next page load — no restart needed.
+
 ## Running Tests
 
 ```bash
