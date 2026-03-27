@@ -9,7 +9,8 @@
   "files": [
     "dist/",
     "build/",
-    "templates/"
+    "templates/",
+    "README.md"
   ],
   "engines": {
     "node": ">=20.0.0"
