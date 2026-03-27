@@ -151,8 +151,7 @@
   .app-main {
     flex: 1;
     padding: var(--spacing-xl);
-    max-width: 100%;
-    overflow-x: hidden;
+    min-width: 0;
   }
 
   .app-footer {
