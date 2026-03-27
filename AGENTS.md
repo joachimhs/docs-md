@@ -1,3 +1,7 @@
+# WORKING WITH GIT
+
+DO NOT commit files to git. The developer manages all commits, ensuring clean history and proper commit messages. This allows for better tracking of changes and accountability.
+
 # Project Documentation (docs.md)
 
 This project uses docs.md for documentation. All documentation lives in the `docs/` directory.

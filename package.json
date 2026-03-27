@@ -1,8 +1,8 @@
 {
-  "name": "docsmd",
-  "version": "0.0.1",
+  "name": "@joachimhskeie/docsmd",
+  "version": "0.1.0",
   "description": "Git-native documentation system with web UI and AI agent support",
-  "private": true,
+  "private": false,
   "bin": {
     "docsmd": "./dist/cli/index.js"
   },
