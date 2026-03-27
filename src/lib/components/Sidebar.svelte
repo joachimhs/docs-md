@@ -1,10 +1,11 @@
 <script lang="ts">
   import type { ManifestEntry, SpecMDConfig } from '$lib/types';
 
-  let { manifest, config, activePath }: {
+  let { manifest, config, activePath, onLinkClick }: {
     manifest: ManifestEntry[];
     config: SpecMDConfig | null;
     activePath: string | null;
+    onLinkClick?: () => void;
   } = $props();
 
   // Group docs by type
@@ -72,6 +73,7 @@
                 class="doc-link"
                 class:active={isActive}
                 title={doc.title}
+                onclick={onLinkClick}
               >
                 {doc.title}
               </a>

@@ -55,11 +55,16 @@
   </header>
 
   <div class="app-body">
-    {#if ui.sidebarOpen}
-      <aside class="app-sidebar">
-        <Sidebar manifest={docs.manifest} config={docs.config} activePath={docs.activeDocPath} />
-      </aside>
-    {/if}
+    <button
+      class="sidebar-backdrop"
+      class:visible={ui.sidebarOpen}
+      onclick={() => ui.toggleSidebar()}
+      aria-label="Close sidebar"
+      tabindex="-1"
+    ></button>
+    <aside class="app-sidebar" class:sidebar-open={ui.sidebarOpen}>
+      <Sidebar manifest={docs.manifest} config={docs.config} activePath={docs.activeDocPath} onLinkClick={() => { if (ui.sidebarOpen) ui.toggleSidebar(); }} />
+    </aside>
 
     <main class="app-main">
       {@render children()}
@@ -117,6 +122,7 @@
     height: calc(100vh - var(--header-height));
     padding: var(--spacing-md);
     background: var(--color-bg-secondary);
+    flex-shrink: 0;
   }
 
   .app-main {
@@ -141,6 +147,20 @@
     font-size: 1.5rem;
     cursor: pointer;
     color: var(--color-text);
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+  }
+
+  .hamburger:hover {
+    background: var(--color-bg-secondary);
+  }
+
+  .sidebar-backdrop {
+    display: none;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: default;
   }
 
   @media (max-width: 768px) {
@@ -148,13 +168,31 @@
       display: block;
     }
 
+    /* On mobile, hide sidebar by default (slide off-screen) */
     .app-sidebar {
       position: fixed;
       top: var(--header-height);
       left: 0;
       bottom: 0;
       z-index: 50;
+      width: min(var(--sidebar-width), 85vw);
+      transform: translateX(-100%);
+      transition: transform 0.25s ease;
+    }
+
+    /* Show sidebar when open */
+    .app-sidebar.sidebar-open {
       transform: translateX(0);
+    }
+
+    /* Backdrop only visible when sidebar is open on mobile */
+    .sidebar-backdrop.visible {
+      display: block;
+      position: fixed;
+      inset: 0;
+      top: var(--header-height);
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 40;
     }
   }
 </style>

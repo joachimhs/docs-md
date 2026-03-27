@@ -36,16 +36,24 @@
     {/if}
     <p class="summary">{totalDocs} documents across {totalTypes} types</p>
 
-    <div class="quick-search">
-      <input
-        type="search"
-        bind:value={quickSearch}
-        onkeydown={handleSearchKeydown}
-        placeholder="Quick search… press Enter to search"
-        class="quick-search-input"
-      />
-    </div>
+    {#if totalDocs > 0}
+      <div class="quick-search">
+        <input
+          type="search"
+          bind:value={quickSearch}
+          onkeydown={handleSearchKeydown}
+          placeholder="Quick search… press Enter to search"
+          class="quick-search-input"
+        />
+      </div>
+    {/if}
   </section>
+
+  {#if totalDocs === 0}
+    <div class="empty-state">
+      <p class="empty-state-message">No documents found. Add Markdown files to your docs/ folder to get started.</p>
+    </div>
+  {/if}
 
   {#if Object.keys(docs.byType).length > 0}
     <section class="types-section">
@@ -140,6 +148,20 @@
   .quick-search-input:focus {
     border-color: var(--color-primary);
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 20%, transparent);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: var(--spacing-xl) var(--spacing-md);
+    border: 2px dashed var(--color-border);
+    border-radius: 12px;
+    background: var(--color-bg-secondary);
+  }
+
+  .empty-state-message {
+    color: var(--color-text-muted);
+    font-size: var(--text-base);
+    margin: 0;
   }
 
   .section-title {
