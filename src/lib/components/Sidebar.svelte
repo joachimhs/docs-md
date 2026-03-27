@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { ManifestEntry, DocsMDConfig } from '$lib/types';
+  import { gitState } from '$lib/stores/git.svelte';
 
   let { manifest, config, activePath, onLinkClick }: {
     manifest: ManifestEntry[];
@@ -75,7 +76,7 @@
                 title={doc.title}
                 onclick={onLinkClick}
               >
-                {doc.title}
+                {doc.title}{#if gitState.isModified(doc.path)}<span class="modified-dot" title="Modified"></span>{/if}
               </a>
             </li>
           {/each}
@@ -192,5 +193,16 @@
     color: var(--color-text-muted);
     font-size: var(--text-sm);
     padding: 0.5rem;
+  }
+
+  .modified-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #f97316;
+    margin-left: 5px;
+    vertical-align: middle;
+    flex-shrink: 0;
   }
 </style>

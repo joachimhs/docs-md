@@ -25,8 +25,8 @@
     <DocHeader frontmatter={data.document.frontmatter} path={data.document.path} />
 
     <div class="doc-toolbar">
-      <button class="toolbar-btn" disabled>Edit</button>
-      <button class="toolbar-btn" disabled>History</button>
+      <a href="/edit/{data.document.path.replace(/\.md$/, '')}" class="toolbar-btn">Edit</a>
+      <a href="/history/{data.document.path.replace(/\.md$/, '')}" class="toolbar-btn">History</a>
       <button
         class="toolbar-btn"
         class:active={showRaw}
@@ -72,6 +72,8 @@
   }
 
   .toolbar-btn {
+    display: inline-flex;
+    align-items: center;
     padding: 0.3rem 0.75rem;
     font-size: var(--text-sm);
     border: 1px solid var(--color-border);
@@ -79,6 +81,7 @@
     background: var(--color-bg);
     color: var(--color-text-secondary);
     cursor: pointer;
+    text-decoration: none;
     transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
   }
 

@@ -4,6 +4,7 @@
   import type { LayoutData } from './$types';
   import { docs } from '$lib/stores/docs.svelte';
   import { ui } from '$lib/stores/ui.svelte';
+  import { gitState } from '$lib/stores/git.svelte';
   import ThemeToggle from '$lib/components/ThemeToggle.svelte';
   import Sidebar from '$lib/components/Sidebar.svelte';
   import SearchBar from '$lib/components/SearchBar.svelte';
@@ -26,6 +27,11 @@
     if (typeof document !== 'undefined') {
       document.documentElement.setAttribute('data-theme', ui.resolvedTheme);
     }
+  });
+
+  // Fetch git status once on mount
+  $effect(() => {
+    gitState.refresh();
   });
 
   // Global Ctrl+K / Cmd+K shortcut to focus search
@@ -51,6 +57,23 @@
     <div class="header-search">
       <SearchBar bind:this={searchBar} />
     </div>
+    {#if gitState.isRepo}
+      <div class="git-indicators">
+        {#if gitState.branch}
+          <span class="git-branch">⎇ {gitState.branch}</span>
+        {/if}
+        {#if gitState.modifiedCount > 0}
+          <span class="git-modified-badge">{gitState.modifiedCount}</span>
+        {/if}
+        {#if gitState.ahead > 0}
+          <span class="git-sync">↑{gitState.ahead}</span>
+        {/if}
+        {#if gitState.behind > 0}
+          <span class="git-sync">↓{gitState.behind}</span>
+        {/if}
+      </div>
+    {/if}
+    <a href="/new" class="btn-new">+ New</a>
     <ThemeToggle />
   </header>
 
@@ -138,6 +161,60 @@
     color: var(--color-text-muted);
     font-size: var(--text-sm);
     border-top: 1px solid var(--color-border);
+  }
+
+  .git-indicators {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-shrink: 0;
+  }
+
+  .git-branch {
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    white-space: nowrap;
+  }
+
+  .git-modified-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    border-radius: 9px;
+    background: #f97316;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .git-sync {
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+  }
+
+  .btn-new {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.3rem 0.65rem;
+    font-size: var(--text-sm);
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    background: var(--color-accent);
+    color: #fff;
+    text-decoration: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: background 0.12s ease;
+  }
+
+  .btn-new:hover {
+    background: var(--color-accent-hover);
   }
 
   .hamburger {
