@@ -23,7 +23,18 @@
     "vitest": "^3.0.0"
   },
   "dependencies": {
+    "@codemirror/autocomplete": "^6.20.1",
+    "@codemirror/commands": "^6.10.3",
+    "@codemirror/lang-markdown": "^6.5.0",
+    "@codemirror/language": "^6.12.3",
+    "@codemirror/search": "^6.6.0",
+    "@codemirror/state": "^6.6.0",
+    "@codemirror/view": "^6.40.0",
+    "@milkdown/crepe": "^7.19.2",
+    "@milkdown/kit": "^7.19.2",
     "@shikijs/rehype": "^1.29.2",
+    "codemirror": "^6.0.2",
+    "diff2html": "^3.4.56",
     "flexsearch": "^0.7.43",
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.0",
@@ -34,6 +45,7 @@
     "remark-rehype": "^11.1.1",
     "remark-stringify": "^11.0.0",
     "shiki": "^1.29.2",
+    "simple-git": "^3.33.0",
     "strip-markdown": "^6.0.0",
     "unified": "^11.0.5"
   },
