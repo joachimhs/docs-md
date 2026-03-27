@@ -29,7 +29,7 @@ search:
 ui:
   theme: "auto"               # Initial theme: "light", "dark", or "auto"
   sidebar_default: "expanded" # Not currently wired (sidebar always starts expanded)
-  default_editor: "richtext"  # Phase 2 setting, no effect in Phase 1
+  default_editor: "richtext"  # Which editor mode opens by default: "richtext" or "markdown"
 ```
 
 ## Document Types

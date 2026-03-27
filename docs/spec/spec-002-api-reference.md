@@ -10,109 +10,175 @@ owner: "@docsmd"
 
 # API Reference
 
-Three endpoints in `src/routes/api/`. All return JSON.
+15 endpoints in `src/routes/api/`. All return JSON unless noted.
 
-## GET /api/search
+## Search
 
-Full-text search across all documents. Implemented in `src/routes/api/search/+server.ts` (26 lines), delegates to `searchDocs()` in `src/lib/server/search.ts`.
+### `GET /api/search`
 
-### Parameters
-
-| Param | Required | Default | Description |
-|-------|----------|---------|-------------|
-| `q` | yes | — | Search query. Returns empty response if blank. Supports field prefixes. |
-| `type` | no | — | Filter results to this document type |
-| `status` | no | — | Filter results to this status |
-| `tag` | no | — | Filter results containing this tag |
-| `limit` | no | 50 | Maximum results |
-
-### Field Prefixes in `q`
-
-The `q` value can include `type:`, `tag:`, `status:`, `owner:` prefixes. These are extracted before the remaining text is sent to FlexSearch. They merge with (and are overridden by) explicit query params.
-
-```
-q=type:adr PostgreSQL     →  searches "PostgreSQL" within ADRs only
-q=tag:security            →  all docs tagged "security" (no free-text query)
-q=status:draft owner:bob  →  all of Bob's drafts
-```
-
-### Response
-
-```json
-{
-  "query": "PostgreSQL",
-  "total": 1,
-  "results": [
-    {
-      "id": "adr-001-use-postgresql",
-      "title": "Use PostgreSQL as Primary Database",
-      "type": "adr",
-      "status": "accepted",
-      "path": "adr/adr-001-use-postgresql.md",
-      "score": 2,
-      "snippet": "...decided to use <mark>PostgreSQL</mark> as our primary...",
-      "tags": ["database", "infrastructure"],
-      "updated": "2026-02-10"
-    }
-  ],
-  "facets": {
-    "type": { "adr": 3, "spec": 2, "guide": 2 },
-    "status": { "accepted": 1, "draft": 3 },
-    "tags": { "database": 1, "security": 2 }
-  }
-}
-```
-
-The `score` reflects how many FlexSearch fields matched (title match = higher score). The `snippet` contains raw HTML with `<mark>` tags around matching terms. Facets reflect the full corpus, not just search results.
-
-## GET /api/docs
-
-List documents from the manifest with optional filtering and sorting. Implemented in `src/routes/api/docs/+server.ts` (29 lines).
-
-### Parameters
+Full-text search across all documents.
 
 | Param | Required | Default | Description |
 |-------|----------|---------|-------------|
+| `q` | yes | — | Search query. Supports field prefixes (`type:adr`, `tag:security`). |
 | `type` | no | — | Filter by document type |
 | `status` | no | — | Filter by status |
-| `tag` | no | — | Filter by tag (exact match against tags array) |
-| `owner` | no | — | Filter by owner |
-| `sort` | no | `title` | Sort field: any ManifestEntry key |
-| `order` | no | `asc` | Sort direction: `asc` or `desc` |
+| `tag` | no | — | Filter by tag |
+| `limit` | no | 50 | Maximum results |
 
-### Response
+Response: `SearchResponse` with `query`, `total`, `results[]`, `facets`.
 
-Array of `ManifestEntry` objects:
+## Documents
 
-```json
-[
-  {
-    "id": "adr-001-use-postgresql",
-    "title": "Use PostgreSQL as Primary Database",
-    "type": "adr",
-    "status": "accepted",
-    "owner": "@alice",
-    "created": "2025-11-15",
-    "updated": "2026-02-10",
-    "tags": ["database", "infrastructure"],
-    "path": "adr/adr-001-use-postgresql.md",
-    "summary": "We evaluated several database options...",
-    "word_count": 342
-  }
-]
-```
+### `GET /api/docs`
 
-## POST /api/manifest
+List all documents with optional filtering.
 
-Force-regenerate `_manifest.json` from the filesystem. Implemented in `src/routes/api/manifest/+server.ts` (12 lines). No request body.
+| Param | Default | Description |
+|-------|---------|-------------|
+| `type` | — | Filter by type |
+| `status` | — | Filter by status |
+| `tag` | — | Filter by tag |
+| `owner` | — | Filter by owner |
+| `sort` | `title` | Sort field |
+| `order` | `asc` | `asc` or `desc` |
 
-### Response
+Response: `ManifestEntry[]`.
+
+### `POST /api/docs`
+
+Create a new document.
 
 ```json
 {
-  "document_count": 11,
-  "generated": "2026-03-27T10:30:00.000Z"
+  "frontmatter": { "title": "My Doc", "type": "adr", "status": "proposed" },
+  "body": "# My Document\n\nContent here."
 }
 ```
 
-Useful after adding or modifying documents outside the running server. The manifest is also regenerated automatically on first access if the cached version is missing.
+Response (201): `{ id, path, filename }`. The filename is auto-generated as `{type}-{NNN}-{slug}.md`.
+
+### `GET /api/docs/[id]`
+
+Read a single document by ID. Returns `{ frontmatter, body, path }`.
+
+With `?at={hash}` query param: returns the document content at that specific git commit instead. Response: `{ content, path, hash }`.
+
+### `PUT /api/docs/[id]`
+
+Update a document. Frontmatter is shallow-merged (existing fields preserved). Body replaces entirely if provided.
+
+```json
+{
+  "frontmatter": { "status": "accepted" },
+  "body": "# Updated content"
+}
+```
+
+Response: `{ id, path, updated }`. The `updated` date is set automatically.
+
+### `DELETE /api/docs/[id]`
+
+Archive (soft-delete) a document. Moves to `docs/_archive/{original-path}`.
+
+Response: `{ id, archived_path }`.
+
+## Preview
+
+### `POST /api/preview`
+
+Render Markdown to HTML using the same unified pipeline as the document viewer.
+
+```json
+{ "markdown": "# Hello **world**" }
+```
+
+Response: `{ html: "<h1>Hello <strong>world</strong></h1>" }`.
+
+Used by the live preview pane in the Markdown editor mode.
+
+## Assets
+
+### `POST /api/assets`
+
+Upload an image file. Accepts `multipart/form-data` with a `file` field. Saves to `docs/_assets/{timestamp}-{safename}`.
+
+Response (201): `{ path: "_assets/filename.png", url: "/api/assets/filename.png" }`.
+
+Used by the image paste/drop handlers in both editors.
+
+### `GET /api/assets/[...filename]`
+
+Serve an uploaded image from `docs/_assets/`. Sets `Content-Type` from file extension and `Cache-Control: public, max-age=31536000, immutable`.
+
+## Git
+
+All Git endpoints operate via `simple-git` scoped to the docs directory. Returns `500` with error message if the working directory is not a git repository.
+
+### `GET /api/git/status`
+
+Returns working tree status scoped to docs/ files.
+
+```json
+{
+  "branch": "main",
+  "modified": ["test-docs/overview.md"],
+  "added": [],
+  "deleted": [],
+  "staged": [],
+  "ahead": 2,
+  "behind": 0,
+  "isClean": false
+}
+```
+
+### `GET /api/git/history`
+
+Commit history for a specific file.
+
+| Param | Required | Default |
+|-------|----------|---------|
+| `path` | yes | — |
+| `limit` | no | 50 |
+
+Response: array of `{ hash, short_hash, author, email, date, message }`.
+
+### `GET /api/git/diff`
+
+Unified diff for a file between commits.
+
+| Param | Required | Description |
+|-------|----------|-------------|
+| `path` | yes | Doc path relative to docs/ |
+| `from` | yes | Commit hash |
+| `to` | no | Commit hash (defaults to `from~1..from`) |
+
+Response: `{ diff: "unified diff string" }`.
+
+### `POST /api/git/commit`
+
+Stage and commit document changes.
+
+```json
+{
+  "message": "docs(adr): update — Use PostgreSQL",
+  "files": ["adr/adr-001-use-postgresql.md"],
+  "author": { "name": "Alice", "email": "alice@example.com" }
+}
+```
+
+The manifest is automatically regenerated and staged alongside the document. Response: `{ hash, message }`.
+
+### `POST /api/git/push`
+
+Push committed changes to remote. Only performs fast-forward pushes.
+
+Response: `{ pushed: true, ahead: 0 }` or `{ pushed: false, reason: "nothing to push" }`.
+
+## Manifest
+
+### `POST /api/manifest`
+
+Force-regenerate `_manifest.json` from the filesystem.
+
+Response: `{ document_count, generated }`.

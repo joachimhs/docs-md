@@ -93,12 +93,40 @@ tags: [tag1, tag2]
 | updated | no | Last update date |
 | tags | no | Array: [tag1, tag2] |
 
+### Updating Documents
+1. Read the existing file and parse its frontmatter
+2. Merge your changes into the frontmatter (do not replace, merge)
+3. Replace the body if needed
+4. Set the \`updated\` field to today's date
+5. Write the file back using gray-matter's \`matter.stringify(body, frontmatter)\`
+6. Call \`POST /api/manifest\` to update the index
+
+Or use the API: \`PUT /api/docs/{id}\` with \`{ frontmatter: { status: "accepted" }, body: "new content" }\`
+
+### Archiving Documents
+To soft-delete, move the file to \`docs/_archive/{original-path}\`. The archived document is excluded from the manifest and search index.
+
+Or use the API: \`DELETE /api/docs/{id}\`
+
+### API Endpoints for Agents
+| Method | Endpoint | Purpose |
+|--------|----------|---------|
+| GET | /api/docs | List all documents (filterable by type, status, tag) |
+| POST | /api/docs | Create new document |
+| GET | /api/docs/{id} | Read single document |
+| PUT | /api/docs/{id} | Update document |
+| DELETE | /api/docs/{id} | Archive document |
+| POST | /api/manifest | Regenerate manifest index |
+| GET | /api/search?q=... | Full-text search |
+
 ### Rules
 - Do not change the \`id\` or \`created\` fields after creation
 - Do not rename files (it breaks Git history)
 - Update the \`updated\` date when making changes
 - Quote date strings in YAML: \`created: "2026-03-27"\` (not unquoted)
-- The \`title\` field is required — documents without it are ignored`;
+- The \`title\` field is required — documents without it are ignored
+- Use sequential numbering in filenames: \`{type}-{NNN}-{slug}.md\`
+- Images go in \`docs/_assets/\` — upload via \`POST /api/assets\``;
 </script>
 
 <div class="landing">
