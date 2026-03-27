@@ -2,3 +2,11 @@ spec_version: "0.1.0"
 project:
   name: "docs.md"
   description: "A Git-native documentation browser built with SvelteKit and Svelte 5"
+auth:
+  enabled: true
+  mode: simple
+  simple:
+    session_secret: "testpassword"
+hosting:
+  auto_pull: true
+  auto_pull_interval: 30

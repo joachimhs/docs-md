@@ -124,6 +124,111 @@ export async function commitDocChange(
   return git.commit(message, undefined, options);
 }
 
+/**
+ * Pull changes from the remote.
+ * If there are uncommitted changes, stash them first and restore after.
+ * Returns info about what happened.
+ */
+export async function pullChanges(): Promise<{
+  pulled: boolean;
+  stashed: boolean;
+  stashConflict: boolean;
+  message: string;
+}> {
+  const git = getGit();
+  const status = await git.status();
+
+  if (!status.current) {
+    return { pulled: false, stashed: false, stashConflict: false, message: 'No branch checked out' };
+  }
+
+  // Check for unpushed commits — refuse to pull if there are local commits ahead
+  const docsStatus = await getDocsStatus();
+  if (docsStatus.ahead > 0) {
+    return {
+      pulled: false,
+      stashed: false,
+      stashConflict: false,
+      message: `Cannot pull: ${docsStatus.ahead} unpushed commit(s). Push or reset first.`,
+    };
+  }
+
+  // Stash uncommitted changes if dirty
+  const dirty = !status.isClean();
+  if (dirty) {
+    await git.stash(['push', '-m', 'docsmd-auto-pull-stash']);
+  }
+
+  try {
+    await git.pull('origin', status.current, { '--ff-only': null });
+  } catch (e: any) {
+    // If pull fails, try to restore stash
+    if (dirty) {
+      try { await git.stash(['pop']); } catch { /* stash pop may also fail */ }
+    }
+    const msg = e.message || 'Pull failed';
+    if (msg.includes('non-fast-forward') || msg.includes('diverged')) {
+      return { pulled: false, stashed: false, stashConflict: false, message: 'Pull failed: branches have diverged. Push or reset first.' };
+    }
+    return { pulled: false, stashed: false, stashConflict: false, message: msg };
+  }
+
+  // Restore stash if we stashed
+  let stashConflict = false;
+  if (dirty) {
+    try {
+      await git.stash(['pop']);
+    } catch {
+      stashConflict = true;
+    }
+  }
+
+  return {
+    pulled: true,
+    stashed: dirty,
+    stashConflict,
+    message: stashConflict
+      ? 'Pulled successfully but stash had conflicts — resolve manually'
+      : 'Pulled successfully',
+  };
+}
+
+/**
+ * Reset local branch to match the remote, discarding all unpushed commits.
+ * Uncommitted changes are preserved via stash.
+ */
+export async function resetToRemote(): Promise<{ reset: boolean; message: string }> {
+  const git = getGit();
+  const status = await git.status();
+
+  if (!status.current) {
+    return { reset: false, message: 'No branch checked out' };
+  }
+
+  // Stash uncommitted changes
+  const dirty = !status.isClean();
+  if (dirty) {
+    await git.stash(['push', '-m', 'docsmd-pre-reset-stash']);
+  }
+
+  try {
+    await git.fetch('origin');
+    await git.reset(['--hard', `origin/${status.current}`]);
+  } catch (e: any) {
+    if (dirty) {
+      try { await git.stash(['pop']); } catch { /* ignore */ }
+    }
+    return { reset: false, message: e.message || 'Reset failed' };
+  }
+
+  // Restore stash
+  if (dirty) {
+    try { await git.stash(['pop']); } catch { /* conflicts possible */ }
+  }
+
+  return { reset: true, message: 'Reset to remote successfully' };
+}
+
 export async function pushChanges() {
   const git = getGit();
 

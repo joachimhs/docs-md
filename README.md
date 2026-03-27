@@ -247,6 +247,191 @@ npm run build     # Build web + CLI
 
 ---
 
+## Authentication
+
+docsmd supports two authentication modes: **simple** (password-based) and **OAuth** (GitHub, GitLab, Google).
+
+### Enabling Simple Auth
+
+1. Add users via the CLI:
+   ```bash
+   docsmd user add alice@example.com --name "Alice" --role admin
+   docsmd user add bob@example.com --name "Bob" --role editor
+   ```
+
+2. Enable auth in `docs/.docsmd.yml`:
+   ```yaml
+   auth:
+     enabled: true
+     mode: simple
+   ```
+
+3. Restart the server. Users will see a login page.
+
+### Enabling OAuth
+
+1. Create an OAuth app with your provider (GitHub, GitLab, or Google)
+2. Configure in `docs/.docsmd.yml`:
+   ```yaml
+   auth:
+     enabled: true
+     mode: oauth
+     oauth:
+       provider: github
+     roles:
+       admin: ["alice@example.com"]
+       editor: ["bob@example.com"]
+   ```
+3. Set environment variables:
+   ```bash
+   export DOCSMD_OAUTH_CLIENT_ID=your_client_id
+   export DOCSMD_OAUTH_CLIENT_SECRET=your_client_secret
+   ```
+
+### Roles
+
+| Role | Read | Edit | Commit | Push | Admin |
+|------|------|------|--------|------|-------|
+| viewer | Yes | — | — | — | — |
+| editor | Yes | Yes | Yes | — | — |
+| admin | Yes | Yes | Yes | Yes | Yes |
+
+## Static Site Export
+
+Build a static version of your documentation (no server required):
+
+```bash
+docsmd build --static
+```
+
+Output is written to `build-static/`. Serve with any HTTP server:
+
+```bash
+npx serve build-static
+```
+
+The static build pre-renders all document pages. Search works client-side. Edit/commit/push features are hidden.
+
+## Auto-Pull
+
+Keep a hosted deployment in sync with the remote repository automatically:
+
+```yaml
+# docs/.docsmd.yml
+hosting:
+  auto_pull: true
+  auto_pull_interval: 60  # seconds
+```
+
+When enabled, docsmd pulls from the remote periodically. Uncommitted changes are stashed and restored automatically. If there are unpushed local commits, auto-pull pauses and a banner prompts the user to push or reset.
+
+See the [Hosted Deployment Guide](docs/guide/guide-005-hosted-deployment.md) for full details.
+
+## Docker Deployment
+
+### Quick Start
+
+```bash
+# In the docsmd directory
+npm run build
+docker compose up --build -d
+```
+
+This builds the app, creates a Docker image, and starts the container. Open `http://localhost:5176`.
+
+Edit the `docker-compose.yml` to change the port or mount a different repository:
+
+```yaml
+services:
+  docsmd:
+    build: .
+    ports:
+      - "5176:5173"
+    volumes:
+      - /path/to/your/repo:/repo:rw
+    environment:
+      - ORIGIN=http://localhost:5176
+```
+
+### Adding Users
+
+To enable authentication, first add users:
+
+```bash
+# From your repo directory
+npx docsmd user add alice@example.com --name "Alice" --role admin
+npx docsmd user add bob@example.com --name "Bob" --role editor
+npx docsmd user add carol@example.com --name "Carol" --role viewer
+```
+
+Each command prompts for a password. Users are stored in `docs/.docsmd-users.yml`.
+
+Then enable auth in `docs/.docsmd.yml`:
+
+```yaml
+auth:
+  enabled: true
+  mode: simple
+  simple:
+    session_secret: "your-secret-at-least-32-characters-long"
+```
+
+Rebuild and restart:
+
+```bash
+docker compose up --build -d
+```
+
+Users will now see a login page. Viewers can read but not edit, editors can edit and commit, admins can also push.
+
+### Roles
+
+| Role | Read | Edit | Commit | Push |
+|------|------|------|--------|------|
+| viewer | Yes | — | — | — |
+| editor | Yes | Yes | Yes | — |
+| admin | Yes | Yes | Yes | Yes |
+
+For OAuth setup and full configuration, see the [Hosted Deployment Guide](docs/guide/guide-005-hosted-deployment.md).
+
+## Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `DOCSMD_REPO_ROOT` | Path to the documentation repository |
+| `DOCSMD_ADAPTER` | `node` or `static` |
+| `DOCSMD_OAUTH_CLIENT_ID` | OAuth client ID |
+| `DOCSMD_OAUTH_CLIENT_SECRET` | OAuth client secret |
+| `DOCSMD_SESSION_SECRET` | Session signing secret |
+| `DOCSMD_BASE_PATH` | Base path for subdirectory deployments |
+| `ORIGIN` | Full origin URL (required for OAuth callbacks) |
+
+## Health Check
+
+```bash
+curl http://localhost:5173/api/health
+```
+
+Returns:
+```json
+{
+  "status": "healthy",
+  "docs_root": "/repo/docs",
+  "docs_found": true,
+  "timestamp": "2026-03-28T12:00:00.000Z"
+}
+```
+
+## Live Reload (SSE)
+
+External tools can subscribe to file change events:
+
+```bash
+curl -N http://localhost:5173/api/events
+```
+
+Events are sent when markdown files in `docs/` are modified, added, or deleted.
+
 ## License
 
 MIT

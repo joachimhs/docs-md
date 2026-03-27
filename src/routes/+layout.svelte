@@ -8,8 +8,21 @@
   import ThemeToggle from '$lib/components/ThemeToggle.svelte';
   import Sidebar from '$lib/components/Sidebar.svelte';
   import SearchBar from '$lib/components/SearchBar.svelte';
+  import UserMenu from '$lib/components/UserMenu.svelte';
 
   let { data, children }: { data: LayoutData; children: Snippet } = $props();
+
+  function canEdit(): boolean {
+    if (!data.authEnabled) return true;
+    if (!data.user) return false;
+    return ['editor', 'admin'].includes(data.user.role);
+  }
+
+  function canPush(): boolean {
+    if (!data.authEnabled) return true;
+    if (!data.user) return false;
+    return data.user.role === 'admin';
+  }
   let searchBar = $state<{ focusInput: () => void } | null>(null);
 
   // Initialize stores from server data
@@ -29,9 +42,20 @@
     }
   });
 
-  // Fetch git status once on mount
+  // Fetch git status and pull status on mount
   $effect(() => {
     gitState.refresh();
+    gitState.refreshPullStatus();
+  });
+
+  // Poll pull status every 30s so the UI reflects auto-pull state changes
+  $effect(() => {
+    if (typeof window === 'undefined') return;
+    const interval = setInterval(() => {
+      gitState.refreshPullStatus();
+      gitState.refresh();
+    }, 30000);
+    return () => clearInterval(interval);
   });
 
   let pushing = $state(false);
@@ -51,10 +75,28 @@
         window.alert(reason);
       }
       await gitState.refresh();
+      await gitState.refreshPullStatus();
     } catch (e) {
       window.alert('Push failed: network error');
     } finally {
       pushing = false;
+    }
+  }
+
+  async function handlePull() {
+    const result = await gitState.triggerPull();
+    if (!result.pulled) {
+      window.alert(result.message || 'Pull failed');
+    }
+  }
+
+  async function handleReset() {
+    if (!window.confirm('This will discard all unpushed commits and reset to match the remote. Continue?')) {
+      return;
+    }
+    const result = await gitState.resetToRemote();
+    if (!result.reset) {
+      window.alert(result.message || 'Reset failed');
     }
   }
 
@@ -92,7 +134,7 @@
         {#if !gitState.hasRemote}
           <span class="git-no-remote" title="No git remote configured. Run: git remote add origin <url>">no remote</span>
         {:else}
-          {#if gitState.ahead > 0}
+          {#if gitState.ahead > 0 && canPush()}
             <button
               class="btn-push"
               onclick={handleGlobalPush}
@@ -103,14 +145,39 @@
             </button>
           {/if}
           {#if gitState.behind > 0}
-            <span class="git-sync">↓{gitState.behind}</span>
+            <button
+              class="btn-pull"
+              onclick={handlePull}
+              disabled={gitState.pulling}
+              title="Pull {gitState.behind} commit{gitState.behind > 1 ? 's' : ''} from remote"
+            >
+              {gitState.pulling ? 'Pulling…' : `Pull ↓${gitState.behind}`}
+            </button>
           {/if}
         {/if}
       </div>
     {/if}
-    <a href="/new" class="btn-new">+ New</a>
+    {#if canEdit()}
+      <a href="/new" class="btn-new">+ New</a>
+    {/if}
+    <UserMenu user={data.user} authEnabled={data.authEnabled} />
     <ThemeToggle />
   </header>
+
+  {#if gitState.pullState === 'blocked'}
+    <div class="pull-blocked-banner">
+      <span class="pull-blocked-icon">&#9888;</span>
+      <span class="pull-blocked-text">
+        Auto-pull paused: {gitState.ahead} unpushed commit{gitState.ahead > 1 ? 's' : ''}.
+      </span>
+      <button class="btn-banner-push" onclick={handleGlobalPush} disabled={pushing}>
+        {pushing ? 'Pushing…' : 'Push'}
+      </button>
+      <button class="btn-banner-reset" onclick={handleReset} disabled={gitState.pulling}>
+        Reset
+      </button>
+    </div>
+  {/if}
 
   <div class="app-body">
     <button
@@ -226,12 +293,6 @@
     line-height: 1;
   }
 
-  .git-sync {
-    font-size: var(--text-xs);
-    color: var(--color-text-muted);
-    font-family: var(--font-mono);
-  }
-
   .git-no-remote {
     font-size: var(--text-xs);
     color: var(--color-warning);
@@ -260,6 +321,99 @@
   }
 
   .btn-push:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .btn-pull {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.55rem;
+    font-size: var(--text-xs);
+    font-weight: 600;
+    border: 1px solid var(--color-accent);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--color-accent);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.12s ease, color 0.12s ease;
+  }
+
+  .btn-pull:hover:not(:disabled) {
+    background: var(--color-accent);
+    color: #fff;
+  }
+
+  .btn-pull:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .pull-blocked-banner {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-xs) var(--spacing-md);
+    background: #fef3c7;
+    border-bottom: 1px solid #f59e0b;
+    font-size: var(--text-sm);
+    color: #92400e;
+  }
+
+  :global([data-theme="dark"]) .pull-blocked-banner {
+    background: #451a03;
+    border-bottom-color: #b45309;
+    color: #fde68a;
+  }
+
+  .pull-blocked-icon {
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  .pull-blocked-text {
+    flex: 1;
+  }
+
+  .btn-banner-push,
+  .btn-banner-reset {
+    padding: 0.2rem 0.6rem;
+    font-size: var(--text-xs);
+    font-weight: 600;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    white-space: nowrap;
+    border: 1px solid;
+  }
+
+  .btn-banner-push {
+    background: #059669;
+    border-color: #059669;
+    color: #fff;
+  }
+
+  .btn-banner-push:hover:not(:disabled) {
+    background: #047857;
+  }
+
+  .btn-banner-reset {
+    background: transparent;
+    border-color: #92400e;
+    color: #92400e;
+  }
+
+  :global([data-theme="dark"]) .btn-banner-reset {
+    border-color: #fde68a;
+    color: #fde68a;
+  }
+
+  .btn-banner-reset:hover:not(:disabled) {
+    background: rgba(0, 0, 0, 0.1);
+  }
+
+  .btn-banner-push:disabled,
+  .btn-banner-reset:disabled {
     opacity: 0.6;
     cursor: not-allowed;
   }

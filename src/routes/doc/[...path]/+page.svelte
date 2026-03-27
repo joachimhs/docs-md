@@ -2,11 +2,20 @@
   import DocHeader from '$lib/components/DocHeader.svelte';
   import TableOfContents from '$lib/components/TableOfContents.svelte';
   import BreadcrumbNav from '$lib/components/BreadcrumbNav.svelte';
+  import LoginPrompt from '$lib/components/LoginPrompt.svelte';
   import { docs } from '$lib/stores/docs.svelte';
+  import { page } from '$app/stores';
 
   let { data } = $props();
 
   let showRaw = $state(false);
+
+  function canEdit(): boolean {
+    const layoutData = $page.data as any;
+    if (!layoutData.authEnabled) return true;
+    if (!layoutData.user) return false;
+    return ['editor', 'admin'].includes(layoutData.user.role);
+  }
 
   // Set active doc path in store so sidebar highlights the current doc
   $effect(() => {
@@ -25,7 +34,11 @@
     <DocHeader frontmatter={data.document.frontmatter} path={data.document.path} />
 
     <div class="doc-toolbar">
-      <a href="/edit/{data.document.path.replace(/\.md$/, '')}" class="toolbar-btn">Edit</a>
+      {#if canEdit()}
+        <a href="/edit/{data.document.path.replace(/\.md$/, '')}" class="toolbar-btn">Edit</a>
+      {:else if ($page.data as any).authEnabled}
+        <LoginPrompt action="edit" />
+      {/if}
       <a href="/history/{data.document.path.replace(/\.md$/, '')}" class="toolbar-btn">History</a>
       <button
         class="toolbar-btn"

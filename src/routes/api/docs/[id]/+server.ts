@@ -3,6 +3,7 @@ import { json, error } from '@sveltejs/kit';
 import { readDocument, updateDocument, archiveDocument } from '$lib/server/docs';
 import { getManifest } from '$lib/server/manifest';
 import { getFileAtCommit } from '$lib/server/git';
+import { requirePermission } from '$lib/server/guards';
 
 function findDocById(id: string) {
   const manifest = getManifest();
@@ -27,17 +28,21 @@ export const GET: RequestHandler = async ({ params, url }) => {
   return json({ frontmatter: document.frontmatter, body: document.body, path: doc.path });
 };
 
-export const PUT: RequestHandler = async ({ params, request }) => {
-  const doc = findDocById(params.id);
+export const PUT: RequestHandler = async (event) => {
+  requirePermission(event, 'edit');
+
+  const doc = findDocById(event.params.id);
   if (!doc) throw error(404, 'Document not found');
 
-  const { frontmatter, body } = await request.json();
+  const { frontmatter, body } = await event.request.json();
   const result = updateDocument(doc.path, { frontmatter, body });
   return json(result);
 };
 
-export const DELETE: RequestHandler = async ({ params }) => {
-  const doc = findDocById(params.id);
+export const DELETE: RequestHandler = async (event) => {
+  requirePermission(event, 'edit');
+
+  const doc = findDocById(event.params.id);
   if (!doc) throw error(404, 'Document not found');
 
   const result = archiveDocument(doc.path);

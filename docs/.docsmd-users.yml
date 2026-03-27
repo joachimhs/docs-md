@@ -1,0 +1,9 @@
+users:
+  - email: admin@test.com
+    name: Admin
+    password_hash: $2b$10$muHXI01ytBpP.farXON9y.0X2NVtuA1PAXS8U/oCqgqZNKn1uAWS.
+    role: admin
+  - email: viewer@test.com
+    name: Viewer
+    password_hash: $2b$10$MN0BnHD.g.Hyk6De3/jdA.rclTJVhO3aPYZo0YheSoZvergRMEVDC
+    role: viewer

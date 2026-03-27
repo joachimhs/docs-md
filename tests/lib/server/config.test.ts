@@ -57,3 +57,24 @@ describe('config', () => {
     expect(config.ui?.sidebar_default).toBe('expanded');
   });
 });
+
+describe('auth config defaults', () => {
+  it('returns auth disabled by default', async () => {
+    vi.resetModules();
+    const { loadConfig } = await import('$lib/server/config');
+    const config = loadConfig();
+    expect(config.auth).toBeDefined();
+    expect(config.auth!.enabled).toBe(false);
+    expect(config.auth!.mode).toBe('simple');
+    expect(config.auth!.public_read).toBe(true);
+  });
+
+  it('returns hosting defaults', async () => {
+    vi.resetModules();
+    const { loadConfig } = await import('$lib/server/config');
+    const config = loadConfig();
+    expect(config.hosting).toBeDefined();
+    expect(config.hosting!.adapter).toBe('node');
+    expect(config.hosting!.base_path).toBe('/');
+  });
+});

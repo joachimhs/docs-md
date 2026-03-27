@@ -2,10 +2,14 @@ import chokidar from 'chokidar';
 import { DOCS_ROOT } from './config';
 import { invalidateManifest } from './manifest';
 import { invalidateSearchIndex } from './search';
-import { resolve } from 'node:path';
 
 let watcher: ReturnType<typeof chokidar.watch> | null = null;
 let reindexTimer: ReturnType<typeof setTimeout> | null = null;
+let notifyFn: ((event: string, data: Record<string, unknown>) => void) | null = null;
+
+export function setNotifyFn(fn: (event: string, data: Record<string, unknown>) => void) {
+  notifyFn = fn;
+}
 
 /**
  * Start watching the docs directory for file changes.
@@ -18,7 +22,7 @@ let reindexTimer: ReturnType<typeof setTimeout> | null = null;
 export function startWatcher() {
   if (watcher) return;
 
-  watcher = chokidar.watch(resolve(DOCS_ROOT, '**/*.md'), {
+  watcher = chokidar.watch(DOCS_ROOT, {
     ignoreInitial: true,
     ignored: [
       '**/node_modules/**',
@@ -31,10 +35,12 @@ export function startWatcher() {
     },
   });
 
-  const handleChange = (path: string) => {
-    console.log(`[watcher] File changed: ${path}`);
+  const handleChange = (filePath: string) => {
+    if (!filePath.endsWith('.md')) return;
+    console.log(`[watcher] File changed: ${filePath}`);
     invalidateManifest();
     debounceReindex();
+    notifyFn?.('docs-changed', { path: filePath });
   };
 
   watcher.on('add', handleChange);

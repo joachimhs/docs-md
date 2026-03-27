@@ -54,7 +54,7 @@
 <nav class="toc">
   <p class="toc-heading">On this page</p>
   <ul class="toc-list">
-    {#each headings as heading (heading.slug)}
+    {#each headings as heading, i (heading.slug + '-' + i)}
       <li style="padding-left: {indentPx(heading.level)}">
         <a
           href="#{heading.slug}"

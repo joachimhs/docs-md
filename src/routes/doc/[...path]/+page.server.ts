@@ -2,6 +2,20 @@ import type { PageServerLoad } from './$types';
 import { readDocument } from '$lib/server/docs';
 import { error } from '@sveltejs/kit';
 
+const isStatic = process.env.DOCSMD_ADAPTER === 'static';
+
+export const prerender = isStatic;
+
+export async function entries() {
+  if (!isStatic) return [];
+
+  const { getManifest } = await import('$lib/server/manifest');
+  const manifest = getManifest();
+  return manifest.documents.map((doc) => ({
+    path: doc.path.replace(/\.md$/, ''),
+  }));
+}
+
 export const load: PageServerLoad = async ({ params }) => {
   const docPath = params.path;
 

@@ -2,7 +2,7 @@ import { env } from '$env/dynamic/private';
 import { resolve } from 'node:path';
 import { readFileSync, existsSync } from 'node:fs';
 import yaml from 'js-yaml';
-import type { DocsMDConfig, DocTypeConfig } from '$lib/types';
+import type { DocsMDConfig, DocTypeConfig, AuthConfig, HostingConfig } from '$lib/types';
 
 // REPO_ROOT: from env or cwd
 export const REPO_ROOT = env.DOCSMD_REPO_ROOT || process.env.DOCSMD_REPO_ROOT || process.cwd();
@@ -55,6 +55,34 @@ const DEFAULT_TYPES: Record<string, DocTypeConfig> = {
   },
 };
 
+const DEFAULT_AUTH: AuthConfig = {
+  enabled: false,
+  mode: 'simple',
+  public_read: true,
+  simple: {
+    users_file: '.docsmd-users.yml',
+    session_secret: '',
+  },
+  oauth: {
+    provider: 'github',
+    client_id: '',
+    client_secret: '',
+    allowed_domains: [],
+    default_role: 'viewer',
+  },
+  roles: {
+    admin: [],
+    editor: [],
+  },
+};
+
+const DEFAULT_HOSTING: HostingConfig = {
+  adapter: 'node',
+  base_path: '/',
+  auto_pull: false,
+  auto_pull_interval: 60,
+};
+
 /**
  * Load and merge configuration.
  * Reads .docsmd.yml if it exists, merges with defaults.
@@ -67,6 +95,49 @@ export function loadConfig(): DocsMDConfig {
     const raw = readFileSync(configPath, 'utf8');
     userConfig = (yaml.load(raw) as Partial<DocsMDConfig>) || {};
   }
+
+  // Build auth config with env var overrides
+  const authConfig: AuthConfig = {
+    ...DEFAULT_AUTH,
+    ...userConfig.auth,
+    simple: {
+      ...DEFAULT_AUTH.simple,
+      ...userConfig.auth?.simple,
+      session_secret:
+        process.env.DOCSMD_SESSION_SECRET ||
+        userConfig.auth?.simple?.session_secret ||
+        DEFAULT_AUTH.simple.session_secret,
+    },
+    oauth: {
+      ...DEFAULT_AUTH.oauth,
+      ...userConfig.auth?.oauth,
+      client_id:
+        process.env.DOCSMD_OAUTH_CLIENT_ID ||
+        userConfig.auth?.oauth?.client_id ||
+        DEFAULT_AUTH.oauth.client_id,
+      client_secret:
+        process.env.DOCSMD_OAUTH_CLIENT_SECRET ||
+        userConfig.auth?.oauth?.client_secret ||
+        DEFAULT_AUTH.oauth.client_secret,
+    },
+    roles: {
+      ...DEFAULT_AUTH.roles,
+      ...userConfig.auth?.roles,
+    },
+  };
+
+  const hostingConfig: HostingConfig = {
+    ...DEFAULT_HOSTING,
+    ...userConfig.hosting,
+    adapter:
+      (process.env.DOCSMD_ADAPTER as 'node' | 'static') ||
+      userConfig.hosting?.adapter ||
+      DEFAULT_HOSTING.adapter,
+    base_path:
+      process.env.DOCSMD_BASE_PATH ||
+      userConfig.hosting?.base_path ||
+      DEFAULT_HOSTING.base_path,
+  };
 
   return {
     spec_version: userConfig.spec_version || '0.1.0',
@@ -88,5 +159,7 @@ export function loadConfig(): DocsMDConfig {
       default_editor: 'richtext',
       ...userConfig.ui,
     },
+    auth: authConfig,
+    hosting: hostingConfig,
   };
 }

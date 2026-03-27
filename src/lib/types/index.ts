@@ -124,4 +124,60 @@ export interface DocsMDConfig {
     sidebar_default?: 'expanded' | 'collapsed';
     default_editor?: 'richtext' | 'markdown';
   };
+  auth?: AuthConfig;
+  hosting?: HostingConfig;
+}
+
+// --- Auth types (Phase 4) ---
+
+/** Authenticated user */
+export interface AuthUser {
+  email: string;
+  name: string;
+  role: 'viewer' | 'editor' | 'admin';
+  avatar?: string;
+}
+
+/** Role type */
+export type AuthRole = 'viewer' | 'editor' | 'admin';
+
+/** Permission actions */
+export type AuthAction = 'read' | 'edit' | 'commit' | 'push' | 'admin';
+
+/** Simple auth user entry from .docsmd-users.yml */
+export interface SimpleAuthUser {
+  email: string;
+  name: string;
+  password_hash: string;
+  role: AuthRole;
+}
+
+/** Auth configuration within DocsMDConfig */
+export interface AuthConfig {
+  enabled: boolean;
+  mode: 'simple' | 'oauth';
+  public_read: boolean;
+  simple: {
+    users_file: string;
+    session_secret: string;
+  };
+  oauth: {
+    provider: 'github' | 'gitlab' | 'google';
+    client_id: string;
+    client_secret: string;
+    allowed_domains: string[];
+    default_role: AuthRole;
+  };
+  roles: {
+    admin: string[];
+    editor: string[];
+  };
+}
+
+/** Hosting configuration within DocsMDConfig */
+export interface HostingConfig {
+  adapter: 'node' | 'static';
+  base_path: string;
+  auto_pull: boolean;
+  auto_pull_interval: number; // seconds
 }

@@ -59,4 +59,38 @@ program
     await search(query, opts);
   });
 
+program
+  .command('build')
+  .description('Build a deployable documentation site')
+  .option('--static', 'Build as a static site (no server required)')
+  .option('--out <dir>', 'Output directory', 'build')
+  .action(async (opts) => {
+    const { build } = await import('./commands/build.js');
+    await build(opts);
+  });
+
+const userCmd = program
+  .command('user')
+  .description('Manage docsmd users (simple auth mode)');
+
+userCmd
+  .command('add <email>')
+  .description('Add a new user')
+  .option('--name <name>', 'Display name')
+  .option('--role <role>', 'Role: viewer, editor, admin', 'editor')
+  .option('-d, --docs <path>', 'Path to docs directory', 'docs')
+  .action(async (email, opts) => {
+    const { userAdd } = await import('./commands/user.js');
+    await userAdd(email, opts);
+  });
+
+userCmd
+  .command('list')
+  .description('List all users')
+  .option('-d, --docs <path>', 'Path to docs directory', 'docs')
+  .action(async (opts) => {
+    const { userList } = await import('./commands/user.js');
+    await userList(opts);
+  });
+
 program.parse(process.argv);

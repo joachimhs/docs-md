@@ -1,0 +1,15 @@
+version: "3.8"
+services:
+  docsmd:
+    build: .
+    ports:
+      - "5176:5173"
+    volumes:
+      - .:/repo:rw
+    environment:
+      - ORIGIN=http://localhost:5176
+      # OAuth config (if using)
+      # - DOCSMD_OAUTH_CLIENT_ID=your_client_id
+      # - DOCSMD_OAUTH_CLIENT_SECRET=your_client_secret
+      # - DOCSMD_SESSION_SECRET=your_secret_here
+    restart: unless-stopped
