@@ -32,13 +32,35 @@ export async function getDocsStatus() {
     // ignore
   }
 
+  // status.ahead is 0 when the branch has no upstream tracking branch,
+  // even if there are unpushed commits. Compute ahead manually by
+  // counting commits that exist locally but not on the remote.
+  let ahead = status.ahead;
+  if (hasRemote && ahead === 0 && status.current) {
+    try {
+      // Try to count commits ahead of origin/{branch}
+      const remote = `origin/${status.current}`;
+      const log = await git.log({ from: remote, to: 'HEAD' });
+      ahead = log.total;
+    } catch {
+      // Remote branch doesn't exist yet — all local commits are unpushed
+      try {
+        const log = await git.log();
+        ahead = log.total;
+      } catch {
+        // empty repo, no commits at all
+        ahead = 0;
+      }
+    }
+  }
+
   return {
     branch: status.current || 'unknown',
     modified: filterDocs(status.modified),
     added: filterDocs(status.not_added),
     deleted: filterDocs(status.deleted),
     staged: filterDocs(status.staged),
-    ahead: status.ahead,
+    ahead,
     behind: status.behind,
     isClean: status.isClean(),
     hasRemote,
@@ -104,12 +126,9 @@ export async function commitDocChange(
 
 export async function pushChanges() {
   const git = getGit();
-  const status = await git.status();
 
-  if (status.ahead === 0) {
-    return { pushed: false, reason: 'nothing to push' };
-  }
-
-  await git.push();
+  // Push with --set-upstream so the tracking branch is created if needed
+  const branch = (await git.status()).current || 'main';
+  await git.push(['-u', 'origin', branch]);
   return { pushed: true, ahead: 0 };
 }
