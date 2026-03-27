@@ -1,8 +1,9 @@
-import { readdirSync, readFileSync, statSync, existsSync } from 'node:fs';
+import { readdirSync, readFileSync, statSync, existsSync, writeFileSync, mkdirSync, renameSync } from 'node:fs';
 import { resolve, relative, join, basename, dirname } from 'node:path';
 import matter from 'gray-matter';
-import { DOCS_ROOT } from './config';
+import { DOCS_ROOT, loadConfig } from './config';
 import { renderMarkdown } from './markdown';
+import { generateManifest, invalidateManifest } from './manifest';
 import type { DocFrontmatter, ManifestEntry, ParsedDocument, DocHeading } from '$lib/types';
 
 /**
@@ -214,4 +215,151 @@ export async function readDocument(docPath: string): Promise<ParsedDocument> {
     path: docPath,
     headings,
   };
+}
+
+/**
+ * Convert a string to a URL-friendly slug.
+ * Lowercases, removes special chars, collapses whitespace/hyphens, truncates to 60 chars.
+ */
+export function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 60);
+}
+
+/**
+ * Return the next sequential number for a given document type.
+ * Scans the type's folder for files matching `{type}-NNN-*.md`, returns max+1.
+ * Returns 1 if no matching files exist.
+ */
+export function getNextSequence(type: string): number {
+  const config = loadConfig();
+  const typeConfig = config.types[type];
+  const folder = typeConfig?.folder || type;
+  const dir = folder ? resolve(DOCS_ROOT, folder) : DOCS_ROOT;
+
+  if (!existsSync(dir)) return 1;
+
+  const files = readdirSync(dir);
+  let maxNum = 0;
+  const pattern = new RegExp(`^${type}-(\\d+)-`);
+
+  for (const file of files) {
+    const match = file.match(pattern);
+    if (match) {
+      maxNum = Math.max(maxNum, parseInt(match[1], 10));
+    }
+  }
+
+  return maxNum + 1;
+}
+
+/**
+ * Create a new document file from frontmatter and body.
+ * Assigns sequential filename, sets created/updated dates, writes to disk.
+ * Throws if title is missing.
+ */
+export function createDocument(
+  frontmatter: Partial<DocFrontmatter>,
+  body: string
+): { id: string; path: string; filename: string } {
+  if (!frontmatter.title) throw new Error('Title is required');
+
+  const type = frontmatter.type || 'doc';
+  const config = loadConfig();
+  const typeConfig = config.types[type];
+  const folder = typeConfig?.folder !== undefined ? typeConfig.folder : type;
+  const seq = getNextSequence(type);
+  const slug = slugify(frontmatter.title);
+  const filename = `${type}-${String(seq).padStart(3, '0')}-${slug}.md`;
+  const today = new Date().toISOString().split('T')[0];
+
+  const fullFrontmatter: Partial<DocFrontmatter> = {
+    ...frontmatter,
+    created: frontmatter.created || today,
+    updated: today,
+  };
+
+  // Ensure directory exists
+  const dir = folder ? resolve(DOCS_ROOT, folder) : DOCS_ROOT;
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+
+  const filePath = folder ? join(folder, filename) : filename;
+  const absolutePath = resolve(DOCS_ROOT, filePath);
+
+  // Serialize with gray-matter
+  const content = matter.stringify(body, fullFrontmatter);
+  writeFileSync(absolutePath, content, 'utf8');
+
+  // Regenerate manifest
+  invalidateManifest();
+  generateManifest();
+
+  const id = `${type}-${String(seq).padStart(3, '0')}-${slug}`;
+  return { id, path: filePath, filename };
+}
+
+/**
+ * Update an existing document by merging frontmatter and/or replacing body.
+ * Always updates the `updated` date. Throws if the document does not exist.
+ */
+export function updateDocument(
+  docPath: string,
+  updates: { frontmatter?: Partial<DocFrontmatter>; body?: string }
+): { id: string; path: string; updated: string } {
+  const absolutePath = resolve(DOCS_ROOT, docPath);
+  if (!existsSync(absolutePath)) throw new Error(`Document not found: ${docPath}`);
+
+  const raw = readFileSync(absolutePath, 'utf8');
+  const { data, content } = matter(raw);
+
+  // Merge frontmatter (shallow merge, don't replace)
+  const mergedFrontmatter = { ...data, ...updates.frontmatter };
+  const today = new Date().toISOString().split('T')[0];
+  mergedFrontmatter.updated = today;
+
+  // Replace body if provided, otherwise keep existing
+  const newBody = updates.body !== undefined ? updates.body : content;
+
+  const serialized = matter.stringify(newBody, mergedFrontmatter);
+  writeFileSync(absolutePath, serialized, 'utf8');
+
+  invalidateManifest();
+  generateManifest();
+
+  const id = generateId(mergedFrontmatter.type || 'doc', docPath);
+  return { id, path: docPath, updated: today };
+}
+
+/**
+ * Archive a document by moving it to `_archive/{original-path}`.
+ * Throws if the document does not exist.
+ */
+export function archiveDocument(docPath: string): { id: string; archived_path: string } {
+  const absolutePath = resolve(DOCS_ROOT, docPath);
+  if (!existsSync(absolutePath)) throw new Error(`Document not found: ${docPath}`);
+
+  const raw = readFileSync(absolutePath, 'utf8');
+  const { data } = matter(raw);
+
+  const archiveDir = resolve(DOCS_ROOT, '_archive');
+  if (!existsSync(archiveDir)) mkdirSync(archiveDir, { recursive: true });
+
+  // Preserve directory structure in archive
+  const archivePath = join('_archive', docPath);
+  const archiveAbsolute = resolve(DOCS_ROOT, archivePath);
+  const archiveParent = resolve(archiveAbsolute, '..');
+  if (!existsSync(archiveParent)) mkdirSync(archiveParent, { recursive: true });
+
+  renameSync(absolutePath, archiveAbsolute);
+
+  invalidateManifest();
+  generateManifest();
+
+  const id = generateId(data.type || 'doc', docPath);
+  return { id, archived_path: archivePath };
 }
