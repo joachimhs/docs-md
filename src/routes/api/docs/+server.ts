@@ -1,6 +1,7 @@
 import type { RequestHandler } from './$types';
 import { json } from '@sveltejs/kit';
 import { getManifest } from '$lib/server/manifest';
+import { createDocument } from '$lib/server/docs';
 
 export const GET: RequestHandler = async ({ url }) => {
   const manifest = getManifest();
@@ -25,4 +26,13 @@ export const GET: RequestHandler = async ({ url }) => {
   });
 
   return json(docs);
+};
+
+export const POST: RequestHandler = async ({ request }) => {
+  const { frontmatter, body } = await request.json();
+  if (!frontmatter?.title) {
+    return json({ error: 'Title is required' }, { status: 400 });
+  }
+  const result = createDocument(frontmatter, body || '');
+  return json(result, { status: 201 });
 };
