@@ -4,7 +4,7 @@
 
 No database. No hosting required. Just Markdown files and Git.
 
-![docs.md landing page](https://raw.githubusercontent.com/joachimhs/docs-md/main/specmd/static/docs_md_frontpage.png)
+![docs.md landing page](https://raw.githubusercontent.com/joachimhs/docs-md/main/static/docs_md_frontpage.png)
 
 ---
 
@@ -60,7 +60,7 @@ Each type has a pre-filled template with section headings and writing guidance. 
 
 Click any document in the sidebar to view it with rendered Markdown, syntax-highlighted code blocks, metadata badges, and a table of contents.
 
-![Document viewer with metadata, syntax highlighting, and table of contents](https://raw.githubusercontent.com/joachimhs/docs-md/main/specmd/static/docs_md_selected_document.png)
+![Document viewer with metadata, syntax highlighting, and table of contents](https://raw.githubusercontent.com/joachimhs/docs-md/main/static/docs_md_selected_document.png)
 
 ### Dual-Mode Editor
 
@@ -68,7 +68,7 @@ Edit in **Rich Text** (WYSIWYG powered by Milkdown) or **Markdown** (CodeMirror 
 
 The structured frontmatter form handles metadata (title, type, status, owner, tags) without exposing raw YAML.
 
-![Dual-mode editor with frontmatter form and toolbar](https://raw.githubusercontent.com/joachimhs/docs-md/main/specmd/static/docs_md_edit_file.png)
+![Dual-mode editor with frontmatter form and toolbar](https://raw.githubusercontent.com/joachimhs/docs-md/main/static/docs_md_edit_file.png)
 
 ### Full-Text Search
 
@@ -89,13 +89,13 @@ Save, commit, and push from the editor toolbar. The header shows your branch, un
 
 View the full commit history for any document:
 
-![Git commit history timeline](https://raw.githubusercontent.com/joachimhs/docs-md/main/specmd/static/docs_md_recent_changes.png)
+![Git commit history timeline](https://raw.githubusercontent.com/joachimhs/docs-md/main/static/docs_md_recent_changes.png)
 
 Compare changes with unified or side-by-side diffs:
 
-![Side-by-side diff view](https://raw.githubusercontent.com/joachimhs/docs-md/main/specmd/static/docs_md_side_by_side_diff.png)
+![Side-by-side diff view](https://raw.githubusercontent.com/joachimhs/docs-md/main/static/docs_md_side_by_side_diff.png)
 
-![Unified diff view](https://raw.githubusercontent.com/joachimhs/docs-md/main/specmd/static/docs_md_unified_diff.png)
+![Unified diff view](https://raw.githubusercontent.com/joachimhs/docs-md/main/static/docs_md_unified_diff.png)
 
 ### AI Agent Ready
 
