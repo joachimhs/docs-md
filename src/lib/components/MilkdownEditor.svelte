@@ -209,6 +209,86 @@
     font-size: inherit;
   }
 
+  /* Crepe code block widget chrome (language selector, collapse, copy) */
+  .milkdown-wrapper :global(.milkdown .code-block),
+  .milkdown-wrapper :global(.milkdown [data-type="code_block"]),
+  .milkdown-wrapper :global(.milkdown .crepe-code-block) {
+    position: relative;
+    margin-bottom: var(--spacing-md);
+  }
+
+  .milkdown-wrapper :global(.milkdown .code-block-header),
+  .milkdown-wrapper :global(.milkdown .crepe-code-block-header) {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-xs) var(--spacing-md);
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border);
+    border-bottom: none;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    font-size: var(--text-xs);
+    color: var(--color-text-secondary);
+  }
+
+  .milkdown-wrapper :global(.milkdown .code-block-header + pre),
+  .milkdown-wrapper :global(.milkdown .crepe-code-block-header + pre) {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    margin-top: 0;
+  }
+
+  /* Language selector in code blocks */
+  .milkdown-wrapper :global(.milkdown .code-block-header select),
+  .milkdown-wrapper :global(.milkdown .crepe-code-block select),
+  .milkdown-wrapper :global(.milkdown select[data-language]) {
+    appearance: none;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    padding: 0.15em 0.5em;
+    font-size: var(--text-xs);
+    font-family: var(--font-mono);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+  }
+
+  /* Collapse/expand and copy buttons in code blocks */
+  .milkdown-wrapper :global(.milkdown .code-block-header button),
+  .milkdown-wrapper :global(.milkdown .crepe-code-block button),
+  .milkdown-wrapper :global(.milkdown .crepe-code-block-header button) {
+    appearance: none;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    padding: 0.15em 0.5em;
+    font-size: var(--text-xs);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    line-height: 1.4;
+  }
+
+  .milkdown-wrapper :global(.milkdown .code-block-header button:hover),
+  .milkdown-wrapper :global(.milkdown .crepe-code-block button:hover),
+  .milkdown-wrapper :global(.milkdown .crepe-code-block-header button:hover) {
+    background: var(--color-bg-tertiary);
+    color: var(--color-text);
+  }
+
+  /* Generic fallback: style any bare select/button that Crepe inserts near code */
+  .milkdown-wrapper :global(.milkdown .ProseMirror div:has(> pre) > select),
+  .milkdown-wrapper :global(.milkdown .ProseMirror div:has(> pre) > button) {
+    appearance: none;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    padding: 0.15em 0.5em;
+    font-size: var(--text-xs);
+    font-family: var(--font-mono);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+  }
+
   /* Blockquotes */
   .milkdown-wrapper :global(.milkdown .ProseMirror blockquote) {
     border-left: 4px solid var(--color-accent);
