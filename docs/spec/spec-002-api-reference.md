@@ -179,6 +179,6 @@ Response: `{ pushed: true, ahead: 0 }` or `{ pushed: false, reason: "nothing to 
 
 ### `POST /api/manifest`
 
-Force-regenerate `_manifest.json` from the filesystem.
+Force-regenerate the in-memory document manifest from the filesystem.
 
 Response: `{ document_count, generated }`.

@@ -93,11 +93,11 @@ Any unknown frontmatter keys are preserved via the `[key: string]: unknown` inde
 
 ## Manifest
 
-`_manifest.json` is written to the docs root by `generateManifest()`. It contains an array of `ManifestEntry` objects for every document found by `scanDocs()`. The manifest drives:
+The manifest is an in-memory index of all documents, built by scanning the docs folder. It is **not written to disk** — it exists only in the server process. The manifest drives:
 
 - Sidebar navigation (grouped by type, sorted by type then title)
 - Landing page type cards and recent documents
 - Search index population
 - Facet counts
 
-The manifest is cached in memory. It regenerates automatically on first access if the file is missing. Call `POST /api/manifest` to force regeneration, or restart the dev server.
+The manifest regenerates automatically on first access and after any CRUD operation. Call `POST /api/manifest` to force regeneration, or restart the dev server. Access it via `GET /api/docs`.

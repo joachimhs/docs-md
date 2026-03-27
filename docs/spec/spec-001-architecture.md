@@ -109,7 +109,7 @@ Cached unified processor pipeline: `remarkParse → remarkGfm → remarkRehype �
 
 ### manifest.ts
 
-Manages `_manifest.json` in `DOCS_ROOT`. `generateManifest()` calls `scanDocs()` and writes to disk. `getManifest()` returns cache → disk → regenerate. `invalidateManifest()` clears the memory cache. All CRUD operations in docs.ts call invalidate + regenerate.
+In-memory document index. `generateManifest()` calls `scanDocs()` and caches the result. `getManifest()` returns cache or regenerates. `invalidateManifest()` clears the cache. Nothing is written to disk — the manifest exists only in the server process. All CRUD operations in docs.ts call invalidate + regenerate.
 
 ### search.ts
 

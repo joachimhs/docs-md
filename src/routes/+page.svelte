@@ -47,7 +47,7 @@ This project uses docs.md for documentation. All documentation lives in the \`do
 ## For AI Agents
 
 ### Discovery
-Read \`docs/_manifest.json\` to get a complete inventory of all documents with their IDs, titles, types, statuses, paths, tags, and summaries.
+Scan the \`docs/\` directory for \`.md\` files with YAML frontmatter. Or, if the docs.md server is running, call \`GET /api/docs\` to get a complete inventory of all documents with their IDs, titles, types, statuses, paths, tags, and summaries.
 
 ### Reading Documents
 Documents are Markdown files with YAML frontmatter. Parse with any YAML frontmatter library (e.g., \`gray-matter\` for Node.js, \`python-frontmatter\` for Python):

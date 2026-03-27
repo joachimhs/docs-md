@@ -1,6 +1,5 @@
 import simpleGit, { type SimpleGit } from 'simple-git';
 import { REPO_ROOT, DOCS_ROOT } from './config';
-import { generateManifest } from './manifest';
 import { resolve, relative } from 'node:path';
 
 function getGit(): SimpleGit {
@@ -83,10 +82,7 @@ export async function commitDocChange(
   const fullPath = resolve(DOCS_ROOT, docPath);
   const docRelative = relative(REPO_ROOT, fullPath);
 
-  generateManifest();
-  const manifestRelative = relative(REPO_ROOT, resolve(DOCS_ROOT, '_manifest.json'));
-
-  await git.add([docRelative, manifestRelative]);
+  await git.add([docRelative]);
 
   const options: Record<string, string> = {};
   if (author) {
