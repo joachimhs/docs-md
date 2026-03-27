@@ -29,12 +29,12 @@ program
   });
 
 program
-  .command('init')
+  .command('init [name]')
   .description('Scaffold the docs/ folder in this repository')
   .option('--ai', 'Generate DOCSMD.md with agent instructions at repo root')
-  .action(async (opts) => {
+  .action(async (name, opts) => {
     const { init } = await import('./commands/init.js');
-    await init(opts);
+    await init(opts, name);
   });
 
 program

@@ -8,6 +8,7 @@ const __dirname = dirname(__filename);
 
 interface InitOptions {
   ai?: boolean;
+  name?: string;
 }
 
 const SUBFOLDERS = [
@@ -72,7 +73,7 @@ tags: []         # optional list of tags
 7. Keep frontmatter fields consistent with existing documents in the repository.
 `;
 
-export async function init(opts: InitOptions): Promise<void> {
+export async function init(opts: InitOptions, name?: string): Promise<void> {
   const cwd = process.cwd();
 
   // Validate: must be a git repo
@@ -129,8 +130,8 @@ export async function init(opts: InitOptions): Promise<void> {
   // Write docs/.docsmd.yml (don't overwrite)
   const configPath = resolve(docsDir, '.docsmd.yml');
   if (!existsSync(configPath)) {
-    // Infer project name from directory name
-    const projectName = cwd.split('/').pop() ?? '';
+    // Use provided name, or infer from directory name
+    const projectName = name ?? cwd.split('/').pop() ?? '';
     const configContent = `spec_version: "0.1.0"\nproject:\n  name: "${projectName}"\n  description: ""\n`;
     writeFileSync(configPath, configContent, 'utf8');
     created.push('docs/.docsmd.yml');
@@ -142,15 +143,16 @@ export async function init(opts: InitOptions): Promise<void> {
   const overviewPath = resolve(docsDir, 'overview.md');
   if (!existsSync(overviewPath)) {
     const today = new Date().toISOString().split('T')[0];
+    const displayName = name ?? 'docs.md';
     const overviewContent = `---
-title: Welcome to docs.md
+title: Welcome to ${displayName}
 type: doc
 status: active
 created: ${today}
 updated: ${today}
 ---
 
-# Welcome to docs.md
+# Welcome to ${displayName}
 
 This is your documentation hub. Use the sections below to navigate your docs.
 
