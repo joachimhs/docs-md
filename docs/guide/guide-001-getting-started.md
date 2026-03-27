@@ -4,114 +4,103 @@ type: guide
 status: active
 created: "2026-03-27"
 updated: "2026-03-27"
-tags: [setup, development, getting-started]
+tags: [setup, development]
 ---
 
 # Getting Started
 
-This guide walks you through setting up docs.md for local development and using it to browse documentation.
-
 ## Prerequisites
 
-- Node.js 20 or later
+- Node.js 20+
 - npm
 
-## Installation
+## Install and Run
 
 ```bash
 cd docsmd
 npm install
+DOCSMD_DOCS_DIR=docs npm run dev
 ```
 
-## Running the Dev Server
-
-docs.md needs to know where your documentation lives. Set the `DOCSMD_DOCS_DIR` environment variable to point at your docs folder:
-
-```bash
-# Browse the project's own docs
-DOCSMD_DOCS_DIR=docs npm run dev -- --port 5176
-
-# Browse the test documentation
-DOCSMD_DOCS_DIR=test-docs npm run dev -- --port 5176
-```
-
-Open `http://localhost:5176` in your browser.
-
-## Pointing at Another Repository
-
-To browse docs from a different Git repository, set `DOCSMD_REPO_ROOT`:
-
-```bash
-DOCSMD_REPO_ROOT=/path/to/other/repo npm run dev -- --port 5176
-```
-
-This will look for a `docs/` folder at the specified path.
+The dev server starts at `http://localhost:5176` (configured in `vite.config.ts` under `server.port`).
 
 ## Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `DOCSMD_REPO_ROOT` | Current directory | Root of the Git repository |
-| `DOCSMD_DOCS_DIR` | `docs` | Name of the docs directory relative to repo root |
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `DOCSMD_REPO_ROOT` | `process.cwd()` | Root directory. `DOCS_ROOT` is resolved relative to this. |
+| `DOCSMD_DOCS_DIR` | `docs` | Name of the documentation directory inside `DOCSMD_REPO_ROOT`. |
 
-## Creating Your First Document
+These are read in `src/lib/server/config.ts`. In production they come from `$env/dynamic/private`; in tests they come from `process.env` (vitest sets `DOCSMD_DOCS_DIR=test-docs` via `vite.config.ts`).
 
-1. Create a Markdown file in the appropriate subfolder:
+## Adding a Document
 
-```bash
-mkdir -p docs/guide
-```
-
-2. Add YAML frontmatter at the top:
+Create a Markdown file in the appropriate type subfolder under your docs directory:
 
 ```markdown
 ---
-title: "My First Guide"
-type: guide
-status: draft
+title: "Use Redis for Session Storage"
+type: adr
+status: proposed
+owner: "@alice"
 created: "2026-03-27"
-tags: [example]
+tags: [infrastructure, caching]
 ---
 
-# My First Guide
+# Use Redis for Session Storage
 
-Write your content here using standard Markdown.
+## Context
+...
 ```
 
-3. The document appears automatically in the sidebar after a page refresh.
+The `title` field is the only required frontmatter field. If `type` is omitted, it is inferred from the parent folder name (`adr/` → `adr`). Files at the docs root get type `doc`.
 
-## File Naming Convention
+The document appears in the sidebar after a page refresh. The server regenerates the manifest (`_manifest.json`) on startup or when `POST /api/manifest` is called.
 
-Documents follow the pattern: `{type}-{NNN}-{slug}.md`
+## File Naming
 
-Examples:
-- `adr-001-use-postgresql.md`
-- `spec-002-notification-pipeline.md`
-- `guide-001-getting-started.md`
+The convention is `{type}-{NNN}-{slug}.md`:
 
-The number helps with ordering. The slug should be a short, descriptive, hyphenated name.
+```
+docs/adr/adr-001-use-postgresql.md
+docs/spec/spec-002-notification-pipeline.md
+docs/guide/guide-001-getting-started.md
+```
+
+The `{NNN}` number controls ordering within a type group. The slug is a hyphenated summary. Document IDs are derived from the filename — `adr-001-use-postgresql.md` gets ID `adr-001-use-postgresql`.
 
 ## Search
 
-Use the search bar in the header (or press `Ctrl+K` / `Cmd+K`) to search across all documents. You can use field-specific queries:
+The search bar in the header (or `Ctrl+K` / `Cmd+K`) performs full-text search across titles, body text, tags, headings, and owners.
 
-- `type:adr` — find all ADRs
-- `tag:security` — find docs tagged "security"
-- `status:draft` — find drafts
-- `type:spec PostgreSQL` — find specs mentioning PostgreSQL
+Field-specific prefixes narrow results:
+
+| Syntax | Effect |
+|--------|--------|
+| `type:adr` | Only ADR documents |
+| `tag:security` | Documents tagged "security" |
+| `status:draft` | Only drafts |
+| `owner:alice` | Documents owned by alice |
+| `type:adr PostgreSQL` | ADRs mentioning PostgreSQL |
+
+These prefixes are parsed by `parseFieldPrefixes()` in `src/lib/server/search.ts` using regex extraction before the remaining text hits FlexSearch.
 
 ## Running Tests
 
 ```bash
-npm test
+npm test              # vitest run (42 tests)
+npm run check         # svelte-kit sync + svelte-check
 ```
 
-This runs the vitest test suite covering all server modules (config, docs, markdown, manifest, search).
+Tests cover all 5 server modules. They use `test-docs/` as the document source (configured via the `DOCSMD_DOCS_DIR` env var in `vite.config.ts`). The `$env/dynamic/private` SvelteKit module is aliased to `tests/mocks/env.ts` which re-exports `process.env`.
 
-## Type Checking
+## Scripts
 
-```bash
-npm run check
-```
-
-Runs `svelte-check` across the entire project.
+| Script | Command | Purpose |
+|--------|---------|---------|
+| `dev` | `vite dev` | Start dev server on port 5176 |
+| `build` | `vite build` | Build for production |
+| `preview` | `vite preview` | Preview production build |
+| `test` | `vitest run` | Run test suite |
+| `check` | `svelte-kit sync && svelte-check` | TypeScript type checking |
+| `check:watch` | same, with `--watch` | Continuous type checking |

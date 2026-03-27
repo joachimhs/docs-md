@@ -1,58 +1,55 @@
 ---
-title: "Use unified/remark/rehype for Markdown Rendering"
+title: "Use unified/remark/rehype for Markdown"
 type: adr
 status: accepted
 owner: "@docsmd"
 created: "2026-03-26"
 updated: "2026-03-27"
-tags: [markdown, rendering, architecture]
+tags: [markdown, rendering]
 decision_date: "2026-03-26"
 ---
 
-# Use unified/remark/rehype for Markdown Rendering
+# Use unified/remark/rehype for Markdown
 
 ## Context
 
-docs.md needs to render Markdown documents to HTML with support for GFM (GitHub Flavored Markdown), syntax highlighting, and extensibility for future plugins.
+docs.md renders Markdown documents to HTML. The pipeline must handle GitHub Flavored Markdown (tables, task lists, strikethrough, autolinks), syntax-highlighted code blocks, and heading anchor IDs.
 
 ## Decision
 
-We use the unified ecosystem with this pipeline:
+The unified ecosystem with this exact plugin chain in `src/lib/server/markdown.ts`:
 
 ```
 remarkParse → remarkGfm → remarkRehype → rehypeShiki → rehypeSlug → rehypeStringify
 ```
 
-- **remark-parse**: Parse Markdown to mdast (Markdown AST)
-- **remark-gfm**: Add GFM support (tables, task lists, strikethrough, autolinks)
-- **remark-rehype**: Convert mdast to hast (HTML AST)
-- **rehype-shiki**: Syntax highlight code blocks with dual themes (github-light + github-dark)
-- **rehype-slug**: Add `id` attributes to headings for TOC anchor links
-- **rehype-stringify**: Serialize hast to HTML string
+Six plugins, each doing one thing:
 
-The processor is created once and cached, since Shiki theme initialization is expensive (~2.4s first run).
+| Plugin | Purpose |
+|--------|---------|
+| `remark-parse` | Markdown text → mdast (Markdown AST) |
+| `remark-gfm` | Adds GFM node types to mdast |
+| `remark-rehype` | mdast → hast (HTML AST). `allowDangerousHtml: true` preserves raw HTML in source. |
+| `@shikijs/rehype` | Walks hast code blocks, applies Shiki highlighting with dual themes |
+| `rehype-slug` | Adds `id` attributes to heading elements matching their text slug |
+| `rehype-stringify` | hast → HTML string |
+
+The processor is created once and cached at module level. The first call to `renderMarkdown()` takes ~2.4 seconds (Shiki loads grammar and theme data). All subsequent calls use the cached processor and complete in milliseconds.
+
+Shiki is configured with paired themes (`github-light` and `github-dark`). It generates inline `style` attributes with CSS custom properties for both themes. The active theme is controlled by the `[data-theme]` attribute on the root HTML element.
 
 ## Consequences
 
 ### Positive
 
-- The unified ecosystem is the standard for Markdown processing in Node.js
-- Plugin architecture makes it easy to add features (math, diagrams, custom directives)
-- Shiki produces accurate syntax highlighting matching VS Code themes
-- Dual-theme support means code blocks adapt to light/dark mode via CSS
+- The unified plugin architecture is composable — adding math rendering, Mermaid diagrams, or custom directives means adding one plugin
+- Shiki produces identical highlighting to VS Code, using the same TextMate grammars
+- rehype-slug generates heading IDs that match the slugs computed by `extractHeadings()` in docs.ts, so TOC anchor links work
+- The pipeline runs entirely on the server; no Markdown parsing happens in the browser
 
 ### Negative
 
-- Many small packages to manage (6 in the pipeline)
-- First render is slow due to Shiki initialization (mitigated by caching)
-- rehype-shiki generates inline styles rather than CSS classes (larger HTML output)
-
-## Alternatives Considered
-
-### marked
-
-Simpler single-package solution but less extensible. No AST-level transformations.
-
-### markdown-it
-
-Good plugin ecosystem but doesn't integrate as cleanly with rehype for post-processing.
+- Six packages to install and version-manage
+- First render latency (~2.4s) is noticeable during development when the server restarts
+- Shiki's inline styles increase HTML size compared to class-based approaches
+- The `any` type annotation on the cached processor variable is needed to avoid complex unified generic type issues

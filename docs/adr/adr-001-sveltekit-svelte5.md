@@ -1,54 +1,40 @@
 ---
-title: "Use SvelteKit with Svelte 5 Runes"
+title: "Use SvelteKit 2 with Svelte 5 Runes"
 type: adr
 status: accepted
 owner: "@docsmd"
 created: "2026-03-26"
 updated: "2026-03-27"
-tags: [framework, frontend, architecture]
+tags: [framework, architecture]
 decision_date: "2026-03-26"
 ---
 
-# Use SvelteKit with Svelte 5 Runes
+# Use SvelteKit 2 with Svelte 5 Runes
 
 ## Context
 
-docs.md needs a web framework for building a documentation browser with server-side rendering, filesystem access, and API routes. The framework must support:
-
-- Server-side rendering (SSR) for fast initial page loads
-- API routes for search and document CRUD
-- File-system-based routing
-- TypeScript support
-- Good developer experience for a documentation UI
+docs.md needs a web framework that supports server-side rendering, file-based routing, server-only modules (for filesystem access), and API routes — all with TypeScript.
 
 ## Decision
 
-We chose SvelteKit 2 with Svelte 5 and the runes API exclusively.
+SvelteKit 2 with Svelte 5, using **only the runes API**. The entire codebase uses `$state`, `$derived`, `$props`, and `$effect`. No legacy patterns (`export let`, `$:`, `writable`/`readable` stores) appear anywhere.
 
-**No legacy Svelte patterns are used.** All state management uses `$state`, `$derived`, `$props`, and `$effect`. No `export let`, no `$:` reactive statements, no Svelte stores (`writable`, `readable`).
+State management uses runes-based singleton classes (e.g., `DocsState` in `src/lib/stores/docs.svelte.ts`) exported as module-level instances. This replaces the legacy Svelte store pattern while being simpler than context-based approaches.
+
+The server adapter is `@sveltejs/adapter-node`, producing a Node.js server. The `src/lib/server/` directory convention ensures server modules (config, docs, markdown, manifest, search) are never bundled into client code.
 
 ## Consequences
 
 ### Positive
 
-- Svelte 5 runes provide explicit, predictable reactivity with fine-grained updates
-- SvelteKit's adapter-node gives us a production-ready Node.js server
-- File-based routing maps cleanly to our URL structure (`/doc/[...path]`, `/search`, `/api/*`)
-- Server-only modules (`src/lib/server/`) are never bundled into client code
-- Small bundle size — Svelte compiles to vanilla JS without a runtime
+- File-based routing maps directly to URL structure: `/doc/[...path]`, `/search`, `/api/*`
+- `+page.server.ts` load functions cleanly separate server-side data fetching from client rendering
+- The `$lib/server/` convention prevents accidental client-side imports of Node.js filesystem code
+- Svelte 5 runes provide explicit, traceable reactivity — `$derived` makes computed state obvious
+- Small bundle size (Svelte compiles away, no framework runtime shipped to client)
 
 ### Negative
 
-- Svelte 5 runes are newer and have less ecosystem coverage for third-party components
-- The `$state` class pattern for stores is less documented than legacy Svelte stores
-- SvelteKit's `$env` module requires special handling in vitest (we mock via aliases)
-
-## Alternatives Considered
-
-### Next.js (React)
-
-Larger ecosystem but heavier runtime, more boilerplate for reactive state management, and React Server Components add complexity we don't need.
-
-### Astro
-
-Excellent for static content sites but less suited for the dynamic features we need (real-time search, theme toggling, future editing capabilities).
+- `$env/dynamic/private` requires aliasing in vitest (`tests/mocks/env.ts` re-exports `process.env`)
+- Svelte 5 runes class syntax for stores is less documented than alternatives
+- `{@render children()}` replaces `<slot />` — easy to forget when reading Svelte 4 examples

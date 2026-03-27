@@ -1,77 +1,57 @@
 ---
-title: "Configuration"
+title: "Configuration Reference"
 type: guide
 status: active
 created: "2026-03-27"
 updated: "2026-03-27"
-tags: [configuration, customization]
+tags: [configuration]
 ---
 
-# Configuration
+# Configuration Reference
 
-docs.md is configured through a `.docsmd.yml` file placed in the root of your docs directory.
+Configuration is loaded by `loadConfig()` in `src/lib/server/config.ts`. It reads `.docsmd.yml` from the docs root directory and deep-merges it with built-in defaults. If the file doesn't exist, defaults are used.
 
-## Config File Location
-
-```
-your-repo/
-  docs/
-    .docsmd.yml    <-- configuration goes here
-    overview.md
-    adr/
-    guide/
-    ...
-```
-
-## Full Schema
+## .docsmd.yml
 
 ```yaml
 spec_version: "0.1.0"
 
 project:
-  name: "My Project"
-  description: "Project documentation"
-  logo: "logo.svg"          # Optional, relative to docs/
-
-types:
-  # Override or extend default types
-  custom-type:
-    label: "Custom"
-    plural: "Custom Documents"
-    folder: "custom"
-    statuses: ["draft", "active", "archived"]
-    default_status: "draft"
-    icon: "file"
+  name: "My Project"          # Shown in header and landing page. Default: "Documentation"
+  description: "About this"   # Shown on landing page below the title
+  logo: "logo.svg"            # Not yet rendered (Phase 2+)
 
 search:
-  fuzzy_threshold: 0.6      # 0-1, lower = stricter matching
-  result_limit: 50           # Max search results
-  snippet_length: 200        # Characters in search snippets
+  fuzzy_threshold: 0.6        # Not currently used (FlexSearch handles its own matching)
+  result_limit: 50            # Max results returned by searchDocs()
+  snippet_length: 200         # Max characters in search result snippets
 
 ui:
-  theme: "auto"              # "light", "dark", or "auto"
-  sidebar_default: "expanded" # "expanded" or "collapsed"
-  default_editor: "richtext"  # "richtext" or "markdown" (Phase 2)
+  theme: "auto"               # Initial theme: "light", "dark", or "auto"
+  sidebar_default: "expanded" # Not currently wired (sidebar always starts expanded)
+  default_editor: "richtext"  # Phase 2 setting, no effect in Phase 1
 ```
 
-## Default Document Types
+## Document Types
 
-docs.md ships with 8 built-in types. You don't need to configure them unless you want to customize:
+Eight types are built in. Each defines a folder, display labels, valid statuses, and a default status:
 
-| Type | Label | Statuses |
-|------|-------|----------|
-| `adr` | ADR | proposed, accepted, rejected, deprecated, superseded |
-| `spec` | Spec | draft, review, approved, implemented, deprecated |
-| `guide` | Guide | draft, active, outdated, archived |
-| `runbook` | Runbook | draft, active, outdated |
-| `api` | API | draft, active, deprecated |
-| `rfc` | RFC | draft, discussion, accepted, rejected, withdrawn |
-| `meeting` | Meeting | draft, final |
-| `doc` | Document | draft, active, archived |
+| Key | Label | Folder | Statuses | Default | Icon |
+|-----|-------|--------|----------|---------|------|
+| `adr` | ADR | `adr/` | proposed, accepted, rejected, deprecated, superseded | proposed | scale |
+| `spec` | Spec | `spec/` | draft, review, approved, implemented, deprecated | draft | file-text |
+| `guide` | Guide | `guide/` | draft, active, outdated, archived | draft | book-open |
+| `runbook` | Runbook | `runbook/` | draft, active, outdated | draft | terminal |
+| `api` | API | `api/` | draft, active, deprecated | draft | plug |
+| `rfc` | RFC | `rfc/` | draft, discussion, accepted, rejected, withdrawn | draft | message-square |
+| `meeting` | Meeting | `meeting/` | draft, final | draft | users |
+| `doc` | Document | (root) | draft, active, archived | draft | file |
 
-## Adding Custom Types
+The icon values are Lucide icon names — not yet rendered as actual icons in Phase 1 (the sidebar shows `[ADR]`-style text placeholders).
 
-Add a new key under `types` in your `.docsmd.yml`:
+### Adding a custom type
+
+Add a key under `types` in `.docsmd.yml`:
 
 ```yaml
 types:
@@ -84,40 +64,40 @@ types:
     icon: "alert-triangle"
 ```
 
-Then create the corresponding folder: `docs/postmortem/`.
+Then create `docs/postmortem/` and add `.md` files there. Custom types merge with (don't replace) the built-in types.
 
 ## Frontmatter Fields
 
-Every document supports these frontmatter fields:
-
 ### Required
 
-- **`title`** — Document title (the only truly required field)
+- **`title`** — Documents without a title are silently skipped by `scanDocs()`.
 
-### Standard
+### Standard (used by the UI)
 
-- **`type`** — Document type (inferred from folder if omitted)
-- **`status`** — Current status (defaults to the type's `default_status`)
-- **`owner`** — Author or owner (convention: `@username`)
-- **`created`** — Creation date (ISO 8601: `"2026-03-27"`)
-- **`updated`** — Last update date
-- **`tags`** — Array of tags: `[architecture, database]`
-- **`id`** — Unique identifier (auto-generated from filename if omitted)
-- **`summary`** — Short summary (auto-extracted from first paragraph if omitted)
+| Field | Type | Used by |
+|-------|------|---------|
+| `type` | string | Badge color, sidebar grouping, search filtering. Inferred from folder if omitted. |
+| `status` | string | Badge display, search filtering. Defaults to the type's `default_status`. |
+| `owner` | string | Shown in doc header. Convention: `@username`. |
+| `created` | string | Shown in doc header, formatted with `Intl.DateTimeFormat`. |
+| `updated` | string | Shown in doc header. Used for "recently updated" sort on landing page. |
+| `tags` | string[] | Rendered as clickable pills linking to `/search?tag=X`. Indexed for search. |
+| `id` | string | Unique document identifier. Auto-generated from filename if omitted. |
+| `summary` | string | Shown in manifest. Auto-extracted from first paragraph if omitted (max 200 chars). |
 
-### Extended
+### Extended (stored in frontmatter, shown in doc header if present)
 
-- **`priority`** — Priority level
-- **`assignee`** — Assigned person(s)
-- **`due_date`** — Due date
-- **`supersedes`** / **`superseded_by`** — Document relationships
-- **`related`** — Array of related document IDs
-- **`version`** — Document version
-- **`decision_date`** — For ADRs
-- **`participants`** — For meetings and ADRs
+`priority`, `assignee`, `due_date`, `supersedes`, `superseded_by`, `related`, `version`, `audience`, `decision_date`, `participants`, `template`
 
-Any additional frontmatter keys are preserved and displayed in the document viewer.
+Any unknown frontmatter keys are preserved via the `[key: string]: unknown` index signature on `DocFrontmatter`.
 
 ## Manifest
 
-docs.md generates a `_manifest.json` file in the docs root. This file is a complete index of all documents and is used for sidebar navigation, search indexing, and the landing page. It is regenerated automatically when the server starts and can be refreshed via the `POST /api/manifest` endpoint.
+`_manifest.json` is written to the docs root by `generateManifest()`. It contains an array of `ManifestEntry` objects for every document found by `scanDocs()`. The manifest drives:
+
+- Sidebar navigation (grouped by type, sorted by type then title)
+- Landing page type cards and recent documents
+- Search index population
+- Facet counts
+
+The manifest is cached in memory. It regenerates automatically on first access if the file is missing. Call `POST /api/manifest` to force regeneration, or restart the dev server.

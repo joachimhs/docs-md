@@ -4,42 +4,39 @@ type: spec
 status: approved
 created: "2026-03-27"
 updated: "2026-03-27"
-tags: [api, endpoints, reference]
+tags: [api, endpoints]
 owner: "@docsmd"
 ---
 
 # API Reference
 
-docs.md exposes REST API endpoints for programmatic access to documentation.
+Three endpoints in `src/routes/api/`. All return JSON.
 
-## Search
+## GET /api/search
 
-### `GET /api/search`
+Full-text search across all documents. Implemented in `src/routes/api/search/+server.ts` (26 lines), delegates to `searchDocs()` in `src/lib/server/search.ts`.
 
-Full-text search across all documents.
+### Parameters
 
-**Query Parameters:**
+| Param | Required | Default | Description |
+|-------|----------|---------|-------------|
+| `q` | yes | — | Search query. Returns empty response if blank. Supports field prefixes. |
+| `type` | no | — | Filter results to this document type |
+| `status` | no | — | Filter results to this status |
+| `tag` | no | — | Filter results containing this tag |
+| `limit` | no | 50 | Maximum results |
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `q` | string | required | Search query. Supports field prefixes. |
-| `type` | string | — | Filter by document type |
-| `status` | string | — | Filter by status |
-| `tag` | string | — | Filter by tag |
-| `limit` | number | 50 | Maximum results to return |
+### Field Prefixes in `q`
 
-**Field-Specific Queries:**
-
-The `q` parameter supports inline field prefixes:
+The `q` value can include `type:`, `tag:`, `status:`, `owner:` prefixes. These are extracted before the remaining text is sent to FlexSearch. They merge with (and are overridden by) explicit query params.
 
 ```
-type:adr                    # All ADRs
-tag:security                # Docs tagged "security"
-type:spec PostgreSQL        # Specs mentioning PostgreSQL
-status:draft owner:alice    # Alice's drafts
+q=type:adr PostgreSQL     →  searches "PostgreSQL" within ADRs only
+q=tag:security            →  all docs tagged "security" (no free-text query)
+q=status:draft owner:bob  →  all of Bob's drafts
 ```
 
-**Response:**
+### Response
 
 ```json
 {
@@ -66,24 +63,24 @@ status:draft owner:alice    # Alice's drafts
 }
 ```
 
-## Documents
+The `score` reflects how many FlexSearch fields matched (title match = higher score). The `snippet` contains raw HTML with `<mark>` tags around matching terms. Facets reflect the full corpus, not just search results.
 
-### `GET /api/docs`
+## GET /api/docs
 
-List all documents with optional filtering and sorting.
+List documents from the manifest with optional filtering and sorting. Implemented in `src/routes/api/docs/+server.ts` (29 lines).
 
-**Query Parameters:**
+### Parameters
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `type` | string | — | Filter by document type |
-| `status` | string | — | Filter by status |
-| `tag` | string | — | Filter by tag |
-| `owner` | string | — | Filter by owner |
-| `sort` | string | `title` | Sort field (title, type, status, created, updated) |
-| `order` | string | `asc` | Sort order (asc, desc) |
+| Param | Required | Default | Description |
+|-------|----------|---------|-------------|
+| `type` | no | — | Filter by document type |
+| `status` | no | — | Filter by status |
+| `tag` | no | — | Filter by tag (exact match against tags array) |
+| `owner` | no | — | Filter by owner |
+| `sort` | no | `title` | Sort field: any ManifestEntry key |
+| `order` | no | `asc` | Sort direction: `asc` or `desc` |
 
-**Response:**
+### Response
 
 Array of `ManifestEntry` objects:
 
@@ -105,15 +102,11 @@ Array of `ManifestEntry` objects:
 ]
 ```
 
-## Manifest
+## POST /api/manifest
 
-### `POST /api/manifest`
+Force-regenerate `_manifest.json` from the filesystem. Implemented in `src/routes/api/manifest/+server.ts` (12 lines). No request body.
 
-Regenerate the document manifest from the filesystem.
-
-**Request Body:** None
-
-**Response:**
+### Response
 
 ```json
 {
@@ -122,4 +115,4 @@ Regenerate the document manifest from the filesystem.
 }
 ```
 
-Use this after adding or modifying documents outside the UI to refresh the index.
+Useful after adding or modifying documents outside the running server. The manifest is also regenerated automatically on first access if the cached version is missing.
