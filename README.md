@@ -4,6 +4,8 @@
 
 No database. No hosting required. Just Markdown files and Git.
 
+![docs.md landing page](static/docs_md_frontpage.png)
+
 ---
 
 ## Why docs.md?
@@ -54,11 +56,19 @@ docs.md ships with 8 document types, each with its own lifecycle:
 
 Each type has a pre-filled template with section headings and writing guidance. Custom types can be added via `.docsmd.yml`.
 
+### Browse Documents
+
+Click any document in the sidebar to view it with rendered Markdown, syntax-highlighted code blocks, metadata badges, and a table of contents.
+
+![Document viewer with metadata, syntax highlighting, and table of contents](static/docs_md_selected_document.png)
+
 ### Dual-Mode Editor
 
-Edit in **Rich Text** (WYSIWYG powered by Milkdown) or **Markdown** (CodeMirror with syntax highlighting and live preview). Switch between modes without losing content.
+Edit in **Rich Text** (WYSIWYG powered by Milkdown) or **Markdown** (CodeMirror with syntax highlighting and live preview). Switch between modes without losing content. Save, commit, and push directly from the toolbar.
 
 The structured frontmatter form handles metadata (title, type, status, owner, tags) without exposing raw YAML.
+
+![Dual-mode editor with frontmatter form and toolbar](static/docs_md_edit_file.png)
 
 ### Full-Text Search
 
@@ -77,7 +87,15 @@ Works in the web UI search bar (`Ctrl+K`) and from the terminal (`docsmd search`
 
 Save, commit, and push from the editor toolbar. The header shows your branch, uncommitted changes, and commits ahead of remote. A global Push button appears when there are unpushed commits.
 
-View the full commit history and diffs for any document — unified or side-by-side.
+View the full commit history for any document:
+
+![Git commit history timeline](static/docs_md_recent_changes.png)
+
+Compare changes with unified or side-by-side diffs:
+
+![Side-by-side diff view](static/docs_md_side_by_side_diff.png)
+
+![Unified diff view](static/docs_md_unified_diff.png)
 
 ### AI Agent Ready
 
