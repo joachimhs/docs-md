@@ -26,6 +26,79 @@
 
   const totalDocs = $derived(docs.manifest?.length ?? 0);
   const totalTypes = $derived(docs.types?.length ?? 0);
+
+  const typeDescriptions: Record<string, string> = {
+    adr: 'Record architectural decisions with context, alternatives, and consequences. Use when choosing technologies, patterns, or approaches that affect the system.',
+    spec: 'Detail how a system or feature works technically. Use for designs that need review before implementation.',
+    guide: 'Step-by-step instructions for accomplishing a task. Use for onboarding, setup, workflows, and how-to content.',
+    runbook: 'Operational procedures for incidents, deployments, and maintenance. Use for anything someone might need to follow under pressure.',
+    api: 'Document API endpoints, request/response formats, and integration details.',
+    rfc: 'Propose changes for team discussion. Use when a decision needs broader input before committing.',
+    meeting: 'Capture decisions, action items, and context from meetings.',
+    doc: 'General documents that don\'t fit a specific type. Files at the docs root get this type automatically.',
+  };
+
+  let agentSectionOpen = $state(false);
+
+  const agentInstructions = `# Project Documentation (docs.md)
+
+This project uses docs.md for documentation. All documentation lives in the \`docs/\` directory.
+
+## For AI Agents
+
+### Discovery
+Read \`docs/_manifest.json\` to get a complete inventory of all documents with their IDs, titles, types, statuses, paths, tags, and summaries.
+
+### Reading Documents
+Documents are Markdown files with YAML frontmatter. Parse with any YAML frontmatter library (e.g., \`gray-matter\` for Node.js, \`python-frontmatter\` for Python):
+
+\`\`\`
+---
+title: "Document Title"
+type: adr
+status: accepted
+tags: [tag1, tag2]
+---
+
+# Markdown content here
+\`\`\`
+
+### Creating Documents
+1. Read the template from \`docs/_templates/{type}.md\` if it exists
+2. Fill in the frontmatter fields (title is required)
+3. Write the Markdown body
+4. Save to \`docs/{type}/{type}-{NNN}-{slug}.md\`
+5. The manifest auto-updates on next server start, or call \`POST /api/manifest\`
+
+### Document Types
+| Type | Folder | Purpose |
+|------|--------|---------|
+| adr | docs/adr/ | Architectural Decision Records |
+| spec | docs/spec/ | Technical Specifications |
+| guide | docs/guide/ | How-to Guides |
+| runbook | docs/runbook/ | Operational Runbooks |
+| api | docs/api/ | API Documentation |
+| rfc | docs/rfc/ | Requests for Comments |
+| meeting | docs/meeting/ | Meeting Notes |
+| doc | docs/ (root) | General Documents |
+
+### Frontmatter Fields
+| Field | Required | Description |
+|-------|----------|-------------|
+| title | yes | Document title |
+| type | no | Document type (inferred from folder if omitted) |
+| status | no | Current status (defaults to type's default) |
+| owner | no | Author, convention: @username |
+| created | no | Creation date, ISO 8601: "2026-03-27" |
+| updated | no | Last update date |
+| tags | no | Array: [tag1, tag2] |
+
+### Rules
+- Do not change the \`id\` or \`created\` fields after creation
+- Do not rename files (it breaks Git history)
+- Update the \`updated\` date when making changes
+- Quote date strings in YAML: \`created: "2026-03-27"\` (not unquoted)
+- The \`title\` field is required — documents without it are ignored`;
 </script>
 
 <div class="landing">
@@ -72,6 +145,44 @@
       </div>
     </section>
   {/if}
+
+  <section class="type-reference">
+    <h2 class="section-title">Type Reference</h2>
+    <div class="type-list">
+      {#each Object.entries(docs.config?.types || {}) as [key, typeConfig]}
+        <div class="type-entry">
+          <div class="type-entry-header">
+            <span class="type-entry-label" style="color: var(--badge-{key}, var(--color-text))">{typeConfig.label}</span>
+            <code class="type-entry-folder">docs/{typeConfig.folder || '(root)'}/</code>
+          </div>
+          <p class="type-entry-description">{typeDescriptions[key] || typeConfig.plural}</p>
+          <div class="type-entry-statuses">
+            {#each typeConfig.statuses as status}
+              <span class="status-chip" class:default={status === typeConfig.default_status}>{status}</span>
+            {/each}
+          </div>
+        </div>
+      {/each}
+    </div>
+  </section>
+
+  <section class="agent-section">
+    <button class="accordion-toggle" onclick={() => agentSectionOpen = !agentSectionOpen}>
+      <span class="accordion-icon" class:open={agentSectionOpen}>&#9654;</span>
+      <h2 class="section-title" style="margin: 0;">Agent Instructions (CLAUDE.md / AGENTS.md)</h2>
+    </button>
+    {#if agentSectionOpen}
+      <div class="agent-content">
+        <p class="agent-hint">Copy the content below into your project's <code>CLAUDE.md</code> or <code>AGENTS.md</code> file so coding agents know how to read and write documentation.</p>
+        <div class="agent-instructions-wrapper">
+          <button class="copy-btn" onclick={() => { navigator.clipboard.writeText(agentInstructions); }}>
+            Copy to clipboard
+          </button>
+          <pre class="agent-instructions">{agentInstructions}</pre>
+        </div>
+      </div>
+    {/if}
+  </section>
 
   {#if docs.recentDocs.length > 0}
     <section class="recent-section">
@@ -285,5 +396,161 @@
     font-size: 0.75rem;
     color: var(--color-text-muted);
     white-space: nowrap;
+  }
+
+  /* Type Reference */
+  .type-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+
+  .type-entry {
+    padding: var(--spacing-md);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-bg-secondary);
+  }
+
+  .type-entry-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-xs);
+  }
+
+  .type-entry-label {
+    font-weight: 700;
+    font-size: var(--text-base);
+  }
+
+  .type-entry-folder {
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+    background: var(--color-bg-tertiary);
+    padding: 0.1em 0.4em;
+    border-radius: 3px;
+  }
+
+  .type-entry-description {
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+    margin: 0 0 var(--spacing-sm);
+    line-height: 1.5;
+  }
+
+  .type-entry-statuses {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .status-chip {
+    font-size: 0.7rem;
+    padding: 0.1em 0.4em;
+    border-radius: 3px;
+    background: var(--color-bg-tertiary);
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .status-chip.default {
+    background: var(--color-accent-bg);
+    color: var(--color-accent);
+    font-weight: 600;
+  }
+
+  /* Agent Instructions Accordion */
+  .accordion-toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    width: 100%;
+    background: none;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: var(--spacing-md);
+    cursor: pointer;
+    color: var(--color-text);
+    text-align: left;
+    transition: background 0.15s;
+  }
+
+  .accordion-toggle:hover {
+    background: var(--color-bg-secondary);
+  }
+
+  .accordion-icon {
+    font-size: 0.75rem;
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+
+  .accordion-icon.open {
+    transform: rotate(90deg);
+  }
+
+  .agent-content {
+    margin-top: var(--spacing-sm);
+    padding: var(--spacing-md);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: var(--color-bg-secondary);
+  }
+
+  .agent-hint {
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+    margin: 0 0 var(--spacing-md);
+    line-height: 1.5;
+  }
+
+  .agent-hint code {
+    background: var(--color-bg-tertiary);
+    padding: 0.15em 0.35em;
+    border-radius: 3px;
+    font-family: var(--font-mono);
+    font-size: 0.875em;
+  }
+
+  .agent-instructions-wrapper {
+    position: relative;
+  }
+
+  .copy-btn {
+    position: absolute;
+    top: var(--spacing-sm);
+    right: var(--spacing-sm);
+    padding: 0.3em 0.7em;
+    font-size: var(--text-xs);
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    z-index: 1;
+  }
+
+  .copy-btn:hover {
+    background: var(--color-accent-bg);
+    color: var(--color-accent);
+  }
+
+  .agent-instructions {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    padding: var(--spacing-md);
+    padding-top: calc(var(--spacing-md) + 1.5rem);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    line-height: 1.6;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    color: var(--color-text);
+    max-height: 500px;
+    overflow-y: auto;
   }
 </style>
