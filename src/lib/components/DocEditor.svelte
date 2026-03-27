@@ -82,15 +82,17 @@
   }
 
   async function handleCommit() {
-    const defaultMsg = `[DOCS.MD] docs(${frontmatter.type ?? 'doc'}): update — ${frontmatter.title}`;
+    const defaultMsg = `docs(${frontmatter.type ?? 'doc'}): update — ${frontmatter.title}`;
     const message = window.prompt('Commit message:', defaultMsg);
     if (message === null) return; // cancelled
+
+    const fullMessage = `[DOCS.MD] ${message || defaultMsg}`;
 
     try {
       const res = await fetch('/api/git/commit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: message || defaultMsg, files: [docPath] }),
+        body: JSON.stringify({ message: fullMessage, files: [docPath] }),
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: 'Commit failed' }));
