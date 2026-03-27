@@ -1,15 +1,15 @@
 ---
-title: "docs.md"
+title: docs.md
 type: doc
 status: active
-created: "2026-03-27"
-updated: "2026-03-27"
-tags: [overview]
+created: '2026-03-27'
+updated: '2026-03-27'
+tags:
+  - overview
 ---
-
 # docs.md
 
-docs.md is a documentation authoring tool and CLI. It reads Markdown files with YAML frontmatter from a `docs/` folder, serves them as a web application with editing and Git integration, and packages as a globally installable npm CLI.
+docs.md is a documentation authoring tool and CLI. It reads Markdown files with YAML frontmatter from a `docs/` folder, serves them as a web application with editing and Git integration, and packages as a globally installable npm CLI. TESTING
 
 ## Current State (Phase 3 Complete)
 
@@ -21,43 +21,57 @@ Phases 1-3 are implemented. docs.md is a distributable documentation tool.
 npm i -g docsmd
 ```
 
-| Command | Description |
-|---------|-------------|
-| `docsmd browse` | Launch the web UI (default port 5176) |
-| `docsmd init [name]` | Scaffold `docs/` folder in current git repo |
-| `docsmd init --ai` | Also generate `DOCSMD.md` agent instructions |
-| `docsmd manifest` | Print document count and type breakdown |
-| `docsmd search <query>` | Search docs from the terminal |
+| Command                 | Description                                  |
+| ----------------------- | -------------------------------------------- |
+| `docsmd browse`         | Launch the web UI (default port 5176)        |
+| `docsmd init [name]`    | Scaffold `docs/` folder in current git repo  |
+| `docsmd init --ai`      | Also generate `DOCSMD.md` agent instructions |
+| `docsmd manifest`       | Print document count and type breakdown      |
+| `docsmd search <query>` | Search docs from the terminal                |
 
 ### Web UI — Browsing
 
-- Sidebar navigation grouped by document type
-- Full-text search with field-specific queries (`type:adr`, `tag:security`)
-- Markdown rendering with GFM, syntax highlighting (Shiki dual themes)
-- Frontmatter metadata display (badges, dates, tags, owners)
-- Table of contents with scroll tracking
-- Light/dark/auto theme
-- Responsive layout with mobile sidebar overlay
+* Sidebar navigation grouped by document type
+
+* Full-text search with field-specific queries (`type:adr`, `tag:security`)
+
+* Markdown rendering with GFM, syntax highlighting (Shiki dual themes)
+
+* Frontmatter metadata display (badges, dates, tags, owners)
+
+* Table of contents with scroll tracking
+
+* Light/dark/auto theme
+
+* Responsive layout with mobile sidebar overlay
 
 ### Web UI — Editing
 
-- Dual-mode editor: WYSIWYG (Milkdown/Crepe) and Markdown source (CodeMirror)
-- Structured frontmatter form — no raw YAML
-- Live Markdown preview pane
-- Image paste/drop upload
-- New document creation with type selection and sequential naming
-- Document archiving (soft-delete)
+* Dual-mode editor: WYSIWYG (Milkdown/Crepe) and Markdown source (CodeMirror)
+
+* Structured frontmatter form — no raw YAML
+
+* Live Markdown preview pane
+
+* Image paste/drop upload
+
+* New document creation with type selection and sequential naming
+
+* Document archiving (soft-delete)
 
 ### Web UI — Git
 
-- Save, commit, push from the editor toolbar
-- Git status in header (branch, modified count, ahead/behind)
-- Modified dots in sidebar
-- Git history timeline and diff viewer (unified + side-by-side)
+* Save, commit, push from the editor toolbar
+
+* Git status in header (branch, modified count, ahead/behind)
+
+* Modified dots in sidebar
+
+* Git history timeline and diff viewer (unified + side-by-side)
 
 ### What's Planned
 
-- Phase 4: Authentication (OAuth + simple auth), static site export, Docker deployment, file watcher
+* Phase 4: Authentication (OAuth + simple auth), static site export, Docker deployment, file watcher
 
 ## Quick Start
 
@@ -108,3 +122,4 @@ docsmd/
   docs/                             This documentation
   tests/                            72 vitest tests
 ```
+
