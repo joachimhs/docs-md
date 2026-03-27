@@ -7,6 +7,9 @@ const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
 export default defineConfig({
   plugins: [sveltekit()],
+  server: {
+    port: 5176,
+  },
   test: {
     include: ['tests/**/*.test.ts'],
     alias: {
