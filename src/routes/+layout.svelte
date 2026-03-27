@@ -34,6 +34,29 @@
     gitState.refresh();
   });
 
+  let pushing = $state(false);
+
+  async function handleGlobalPush() {
+    if (pushing) return;
+    pushing = true;
+    try {
+      const res = await fetch('/api/git/push', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: '{}',
+      });
+      const data = await res.json();
+      if (!res.ok || !data.pushed) {
+        console.error('Push failed:', data.reason || 'unknown error');
+      }
+      await gitState.refresh();
+    } catch (e) {
+      console.error('Push error:', e);
+    } finally {
+      pushing = false;
+    }
+  }
+
   // Global Ctrl+K / Cmd+K shortcut to focus search
   $effect(() => {
     if (typeof window === 'undefined') return;
@@ -66,7 +89,14 @@
           <span class="git-modified-badge">{gitState.modifiedCount}</span>
         {/if}
         {#if gitState.ahead > 0}
-          <span class="git-sync">↑{gitState.ahead}</span>
+          <button
+            class="btn-push"
+            onclick={handleGlobalPush}
+            disabled={pushing}
+            title="Push {gitState.ahead} commit{gitState.ahead > 1 ? 's' : ''} to remote"
+          >
+            {pushing ? 'Pushing…' : `Push ↑${gitState.ahead}`}
+          </button>
         {/if}
         {#if gitState.behind > 0}
           <span class="git-sync">↓{gitState.behind}</span>
@@ -195,6 +225,31 @@
     font-size: var(--text-xs);
     color: var(--color-text-muted);
     font-family: var(--font-mono);
+  }
+
+  .btn-push {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.55rem;
+    font-size: var(--text-xs);
+    font-weight: 600;
+    border: 1px solid var(--color-success);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--color-success);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.12s ease, color 0.12s ease;
+  }
+
+  .btn-push:hover:not(:disabled) {
+    background: var(--color-success);
+    color: #fff;
+  }
+
+  .btn-push:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
   }
 
   .btn-new {
