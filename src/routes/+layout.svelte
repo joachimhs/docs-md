@@ -47,7 +47,7 @@
 <div class="app-layout">
   <header class="app-header">
     <button class="hamburger" onclick={() => ui.toggleSidebar()}>☰</button>
-    <a href="/" class="logo">{docs.config?.project.name || 'spec.md'}</a>
+    <a href="/" class="logo">{docs.config?.project.name || 'docs.md'}</a>
     <div class="header-search">
       <SearchBar bind:this={searchBar} />
     </div>
@@ -72,7 +72,7 @@
   </div>
 
   <footer class="app-footer">
-    Powered by spec.md
+    Powered by docs.md
   </footer>
 </div>
 

@@ -5,12 +5,12 @@ status: approved
 created: "2026-03-27"
 updated: "2026-03-27"
 tags: [api, endpoints, reference]
-owner: "@specmd"
+owner: "@docsmd"
 ---
 
 # API Reference
 
-spec.md exposes REST API endpoints for programmatic access to documentation.
+docs.md exposes REST API endpoints for programmatic access to documentation.
 
 ## Search
 

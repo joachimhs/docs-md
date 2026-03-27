@@ -1,5 +1,5 @@
 ---
-title: "spec.md Documentation"
+title: "docs.md Documentation"
 type: doc
 status: active
 created: "2026-03-27"
@@ -7,13 +7,13 @@ updated: "2026-03-27"
 tags: [overview, getting-started]
 ---
 
-# spec.md
+# docs.md
 
 A Git-native documentation browser that reads Markdown files with YAML frontmatter from a `docs/` folder and serves them as a navigable, searchable site with light/dark themes.
 
 ## What It Does
 
-spec.md turns a folder of Markdown files into a full documentation site with:
+docs.md turns a folder of Markdown files into a full documentation site with:
 
 - **Sidebar navigation** grouped by document type (ADR, Spec, Guide, etc.)
 - **Full-text search** with FlexSearch, including field-specific queries (`type:adr`, `tag:security`)
@@ -26,9 +26,9 @@ spec.md turns a folder of Markdown files into a full documentation site with:
 ## Quick Start
 
 ```bash
-cd specmd
+cd docsmd
 npm install
-SPECMD_DOCS_DIR=docs npm run dev -- --port 5176
+DOCSMD_DOCS_DIR=docs npm run dev -- --port 5176
 ```
 
 Then open `http://localhost:5176`.

@@ -57,7 +57,7 @@
 </script>
 
 <svelte:head>
-  <title>Search {localQuery ? `— ${localQuery}` : ''} | {$page.data?.config?.project?.name || 'spec.md'}</title>
+  <title>Search {localQuery ? `— ${localQuery}` : ''} | {$page.data?.config?.project?.name || 'docs.md'}</title>
 </svelte:head>
 
 <div class="search-page">

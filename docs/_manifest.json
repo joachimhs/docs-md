@@ -1,0 +1,140 @@
+{
+  "generated": "2026-03-27T06:24:14.350Z",
+  "version": "0.1.0",
+  "document_count": 8,
+  "documents": [
+    {
+      "id": "adr-003-flexsearch",
+      "title": "Use FlexSearch for Full-Text Search",
+      "type": "adr",
+      "status": "accepted",
+      "owner": "@specmd",
+      "created": "2026-03-26",
+      "updated": "2026-03-27",
+      "tags": [
+        "search",
+        "architecture"
+      ],
+      "path": "adr/adr-003-flexsearch.md",
+      "summary": "spec.md needs fast, in-memory full-text search across all documents. The search must support multi-field querying (title, body, tags, headings) and return results within 200ms.",
+      "word_count": 256
+    },
+    {
+      "id": "adr-001-sveltekit-svelte5",
+      "title": "Use SvelteKit with Svelte 5 Runes",
+      "type": "adr",
+      "status": "accepted",
+      "owner": "@specmd",
+      "created": "2026-03-26",
+      "updated": "2026-03-27",
+      "tags": [
+        "framework",
+        "frontend",
+        "architecture"
+      ],
+      "path": "adr/adr-001-sveltekit-svelte5.md",
+      "summary": "spec.md needs a web framework for building a documentation browser with server-side rendering, filesystem access, and API routes. The framework must support:",
+      "word_count": 250
+    },
+    {
+      "id": "adr-002-unified-markdown-pipeline",
+      "title": "Use unified/remark/rehype for Markdown Rendering",
+      "type": "adr",
+      "status": "accepted",
+      "owner": "@specmd",
+      "created": "2026-03-26",
+      "updated": "2026-03-27",
+      "tags": [
+        "markdown",
+        "rendering",
+        "architecture"
+      ],
+      "path": "adr/adr-002-unified-markdown-pipeline.md",
+      "summary": "spec.md needs to render Markdown documents to HTML with support for GFM (GitHub Flavored Markdown), syntax highlighting, and extensibility for future plugins.",
+      "word_count": 226
+    },
+    {
+      "id": "doc-overview",
+      "title": "spec.md Documentation",
+      "type": "doc",
+      "status": "active",
+      "owner": "",
+      "created": "2026-03-27",
+      "updated": "2026-03-27",
+      "tags": [
+        "overview",
+        "getting-started"
+      ],
+      "path": "overview.md",
+      "summary": "A Git-native documentation browser that reads Markdown files with YAML frontmatter from a `docs/` folder and serves them as a navigable, searchable site with light/dark themes.",
+      "word_count": 236
+    },
+    {
+      "id": "guide-002-configuration",
+      "title": "Configuration",
+      "type": "guide",
+      "status": "active",
+      "owner": "",
+      "created": "2026-03-27",
+      "updated": "2026-03-27",
+      "tags": [
+        "configuration",
+        "customization"
+      ],
+      "path": "guide/guide-002-configuration.md",
+      "summary": "spec.md is configured through a `.specmd.yml` file placed in the root of your docs directory.",
+      "word_count": 339
+    },
+    {
+      "id": "guide-001-getting-started",
+      "title": "Getting Started",
+      "type": "guide",
+      "status": "active",
+      "owner": "",
+      "created": "2026-03-27",
+      "updated": "2026-03-27",
+      "tags": [
+        "setup",
+        "development",
+        "getting-started"
+      ],
+      "path": "guide/guide-001-getting-started.md",
+      "summary": "This guide walks you through setting up spec.md for local development and using it to browse documentation.",
+      "word_count": 247
+    },
+    {
+      "id": "spec-002-api-reference",
+      "title": "API Reference",
+      "type": "spec",
+      "status": "approved",
+      "owner": "@specmd",
+      "created": "2026-03-27",
+      "updated": "2026-03-27",
+      "tags": [
+        "api",
+        "endpoints",
+        "reference"
+      ],
+      "path": "spec/spec-002-api-reference.md",
+      "summary": "spec.md exposes REST API endpoints for programmatic access to documentation.",
+      "word_count": 215
+    },
+    {
+      "id": "spec-001-architecture",
+      "title": "Architecture Overview",
+      "type": "spec",
+      "status": "approved",
+      "owner": "@specmd",
+      "created": "2026-03-27",
+      "updated": "2026-03-27",
+      "tags": [
+        "architecture",
+        "sveltekit",
+        "svelte5"
+      ],
+      "path": "spec/spec-001-architecture.md",
+      "summary": "spec.md is a SvelteKit application that reads Markdown files from a filesystem and serves them as a documentation site. Phase 1 implements a read-only browser.",
+      "word_count": 461
+    }
+  ]
+}

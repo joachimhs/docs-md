@@ -15,13 +15,13 @@ class UIState {
   setTheme(theme: 'light' | 'dark' | 'auto') {
     this.theme = theme;
     if (typeof window !== 'undefined') {
-      localStorage.setItem('specmd-theme', theme);
+      localStorage.setItem('docsmd-theme', theme);
     }
   }
 
   loadSavedTheme() {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('specmd-theme') as 'light' | 'dark' | 'auto' | null;
+      const saved = localStorage.getItem('docsmd-theme') as 'light' | 'dark' | 'auto' | null;
       if (saved) this.theme = saved;
     }
   }

@@ -5,12 +5,12 @@ status: approved
 created: "2026-03-27"
 updated: "2026-03-27"
 tags: [architecture, sveltekit, svelte5]
-owner: "@specmd"
+owner: "@docsmd"
 ---
 
 # Architecture Overview
 
-spec.md is a SvelteKit application that reads Markdown files from a filesystem and serves them as a documentation site. Phase 1 implements a read-only browser.
+docs.md is a SvelteKit application that reads Markdown files from a filesystem and serves them as a documentation site. Phase 1 implements a read-only browser.
 
 ## Tech Stack
 
@@ -26,7 +26,7 @@ spec.md is a SvelteKit application that reads Markdown files from a filesystem a
 ## Project Structure
 
 ```
-specmd/
+docsmd/
 ├── src/
 │   ├── app.css                    # Global CSS with light/dark themes
 │   ├── app.html                   # HTML shell
@@ -85,7 +85,7 @@ specmd/
 
 ### config.ts
 
-Reads `SPECMD_REPO_ROOT` and `SPECMD_DOCS_DIR` from environment variables. Loads `.specmd.yml` from the docs root and merges with built-in defaults for 8 document types.
+Reads `DOCSMD_REPO_ROOT` and `DOCSMD_DOCS_DIR` from environment variables. Loads `.docsmd.yml` from the docs root and merges with built-in defaults for 8 document types.
 
 ### docs.ts
 

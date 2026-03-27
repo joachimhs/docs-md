@@ -9,7 +9,7 @@ tags: [setup, development, getting-started]
 
 # Getting Started
 
-This guide walks you through setting up spec.md for local development and using it to browse documentation.
+This guide walks you through setting up docs.md for local development and using it to browse documentation.
 
 ## Prerequisites
 
@@ -19,30 +19,30 @@ This guide walks you through setting up spec.md for local development and using 
 ## Installation
 
 ```bash
-cd specmd
+cd docsmd
 npm install
 ```
 
 ## Running the Dev Server
 
-spec.md needs to know where your documentation lives. Set the `SPECMD_DOCS_DIR` environment variable to point at your docs folder:
+docs.md needs to know where your documentation lives. Set the `DOCSMD_DOCS_DIR` environment variable to point at your docs folder:
 
 ```bash
 # Browse the project's own docs
-SPECMD_DOCS_DIR=docs npm run dev -- --port 5176
+DOCSMD_DOCS_DIR=docs npm run dev -- --port 5176
 
 # Browse the test documentation
-SPECMD_DOCS_DIR=test-docs npm run dev -- --port 5176
+DOCSMD_DOCS_DIR=test-docs npm run dev -- --port 5176
 ```
 
 Open `http://localhost:5176` in your browser.
 
 ## Pointing at Another Repository
 
-To browse docs from a different Git repository, set `SPECMD_REPO_ROOT`:
+To browse docs from a different Git repository, set `DOCSMD_REPO_ROOT`:
 
 ```bash
-SPECMD_REPO_ROOT=/path/to/other/repo npm run dev -- --port 5176
+DOCSMD_REPO_ROOT=/path/to/other/repo npm run dev -- --port 5176
 ```
 
 This will look for a `docs/` folder at the specified path.
@@ -51,8 +51,8 @@ This will look for a `docs/` folder at the specified path.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `SPECMD_REPO_ROOT` | Current directory | Root of the Git repository |
-| `SPECMD_DOCS_DIR` | `docs` | Name of the docs directory relative to repo root |
+| `DOCSMD_REPO_ROOT` | Current directory | Root of the Git repository |
+| `DOCSMD_DOCS_DIR` | `docs` | Name of the docs directory relative to repo root |
 
 ## Creating Your First Document
 

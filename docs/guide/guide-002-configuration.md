@@ -9,14 +9,14 @@ tags: [configuration, customization]
 
 # Configuration
 
-spec.md is configured through a `.specmd.yml` file placed in the root of your docs directory.
+docs.md is configured through a `.docsmd.yml` file placed in the root of your docs directory.
 
 ## Config File Location
 
 ```
 your-repo/
   docs/
-    .specmd.yml    <-- configuration goes here
+    .docsmd.yml    <-- configuration goes here
     overview.md
     adr/
     guide/
@@ -56,7 +56,7 @@ ui:
 
 ## Default Document Types
 
-spec.md ships with 8 built-in types. You don't need to configure them unless you want to customize:
+docs.md ships with 8 built-in types. You don't need to configure them unless you want to customize:
 
 | Type | Label | Statuses |
 |------|-------|----------|
@@ -71,7 +71,7 @@ spec.md ships with 8 built-in types. You don't need to configure them unless you
 
 ## Adding Custom Types
 
-Add a new key under `types` in your `.specmd.yml`:
+Add a new key under `types` in your `.docsmd.yml`:
 
 ```yaml
 types:
@@ -120,4 +120,4 @@ Any additional frontmatter keys are preserved and displayed in the document view
 
 ## Manifest
 
-spec.md generates a `_manifest.json` file in the docs root. This file is a complete index of all documents and is used for sidebar navigation, search indexing, and the landing page. It is regenerated automatically when the server starts and can be refreshed via the `POST /api/manifest` endpoint.
+docs.md generates a `_manifest.json` file in the docs root. This file is a complete index of all documents and is used for sidebar navigation, search indexing, and the landing page. It is regenerated automatically when the server starts and can be refreshed via the `POST /api/manifest` endpoint.

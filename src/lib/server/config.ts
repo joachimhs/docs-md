@@ -2,13 +2,13 @@ import { env } from '$env/dynamic/private';
 import { resolve } from 'node:path';
 import { readFileSync, existsSync } from 'node:fs';
 import yaml from 'js-yaml';
-import type { SpecMDConfig, DocTypeConfig } from '$lib/types';
+import type { DocsMDConfig, DocTypeConfig } from '$lib/types';
 
 // REPO_ROOT: from env or cwd
-export const REPO_ROOT = env.SPECMD_REPO_ROOT || process.env.SPECMD_REPO_ROOT || process.cwd();
+export const REPO_ROOT = env.DOCSMD_REPO_ROOT || process.env.DOCSMD_REPO_ROOT || process.cwd();
 
 // DOCS_ROOT: configurable docs directory name (defaults to 'docs')
-const docsDir = env.SPECMD_DOCS_DIR || process.env.SPECMD_DOCS_DIR || 'docs';
+const docsDir = env.DOCSMD_DOCS_DIR || process.env.DOCSMD_DOCS_DIR || 'docs';
 export const DOCS_ROOT = resolve(REPO_ROOT, docsDir);
 
 /** Default document type configurations */
@@ -57,15 +57,15 @@ const DEFAULT_TYPES: Record<string, DocTypeConfig> = {
 
 /**
  * Load and merge configuration.
- * Reads .specmd.yml if it exists, merges with defaults.
+ * Reads .docsmd.yml if it exists, merges with defaults.
  */
-export function loadConfig(): SpecMDConfig {
-  const configPath = resolve(DOCS_ROOT, '.specmd.yml');
-  let userConfig: Partial<SpecMDConfig> = {};
+export function loadConfig(): DocsMDConfig {
+  const configPath = resolve(DOCS_ROOT, '.docsmd.yml');
+  let userConfig: Partial<DocsMDConfig> = {};
 
   if (existsSync(configPath)) {
     const raw = readFileSync(configPath, 'utf8');
-    userConfig = (yaml.load(raw) as Partial<SpecMDConfig>) || {};
+    userConfig = (yaml.load(raw) as Partial<DocsMDConfig>) || {};
   }
 
   return {

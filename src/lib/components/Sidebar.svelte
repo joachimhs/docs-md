@@ -1,9 +1,9 @@
 <script lang="ts">
-  import type { ManifestEntry, SpecMDConfig } from '$lib/types';
+  import type { ManifestEntry, DocsMDConfig } from '$lib/types';
 
   let { manifest, config, activePath, onLinkClick }: {
     manifest: ManifestEntry[];
-    config: SpecMDConfig | null;
+    config: DocsMDConfig | null;
     activePath: string | null;
     onLinkClick?: () => void;
   } = $props();

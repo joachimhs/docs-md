@@ -10,13 +10,13 @@ describe('config', () => {
     expect(DOCS_ROOT).toContain('test-docs');
   });
 
-  it('should load config with default types when .specmd.yml exists', async () => {
+  it('should load config with default types when .docsmd.yml exists', async () => {
     const { loadConfig } = await import('$lib/server/config');
     const config = loadConfig();
     expect(config.types.adr).toBeDefined();
     expect(config.types.adr.label).toBe('ADR');
     expect(config.types.spec).toBeDefined();
-    expect(config.project.name).toBe('Acme Platform'); // from test-docs/.specmd.yml
+    expect(config.project.name).toBe('Acme Platform'); // from test-docs/.docsmd.yml
   });
 
   it('should have all 8 default document types', async () => {

@@ -2,7 +2,7 @@
 title: "Use SvelteKit with Svelte 5 Runes"
 type: adr
 status: accepted
-owner: "@specmd"
+owner: "@docsmd"
 created: "2026-03-26"
 updated: "2026-03-27"
 tags: [framework, frontend, architecture]
@@ -13,7 +13,7 @@ decision_date: "2026-03-26"
 
 ## Context
 
-spec.md needs a web framework for building a documentation browser with server-side rendering, filesystem access, and API routes. The framework must support:
+docs.md needs a web framework for building a documentation browser with server-side rendering, filesystem access, and API routes. The framework must support:
 
 - Server-side rendering (SSR) for fast initial page loads
 - API routes for search and document CRUD

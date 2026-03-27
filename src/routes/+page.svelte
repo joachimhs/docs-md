@@ -30,7 +30,7 @@
 
 <div class="landing">
   <section class="hero">
-    <h1 class="project-name">{docs.config?.project.name || 'spec.md'}</h1>
+    <h1 class="project-name">{docs.config?.project.name || 'docs.md'}</h1>
     {#if docs.config?.project.description}
       <p class="project-description">{docs.config.project.description}</p>
     {/if}

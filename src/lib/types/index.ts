@@ -95,7 +95,7 @@ export interface SearchResponse {
   };
 }
 
-/** Document type configuration (from .specmd.yml or defaults) */
+/** Document type configuration (from .docsmd.yml or defaults) */
 export interface DocTypeConfig {
   label: string;
   plural: string;
@@ -105,8 +105,8 @@ export interface DocTypeConfig {
   icon: string;
 }
 
-/** The .specmd.yml configuration file structure */
-export interface SpecMDConfig {
+/** The .docsmd.yml configuration file structure */
+export interface DocsMDConfig {
   spec_version: string;
   project: {
     name: string;

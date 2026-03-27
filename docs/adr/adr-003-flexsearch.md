@@ -2,7 +2,7 @@
 title: "Use FlexSearch for Full-Text Search"
 type: adr
 status: accepted
-owner: "@specmd"
+owner: "@docsmd"
 created: "2026-03-26"
 updated: "2026-03-27"
 tags: [search, architecture]
@@ -13,7 +13,7 @@ decision_date: "2026-03-26"
 
 ## Context
 
-spec.md needs fast, in-memory full-text search across all documents. The search must support multi-field querying (title, body, tags, headings) and return results within 200ms.
+docs.md needs fast, in-memory full-text search across all documents. The search must support multi-field querying (title, body, tags, headings) and return results within 200ms.
 
 ## Decision
 

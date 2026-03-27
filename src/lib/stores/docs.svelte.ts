@@ -1,8 +1,8 @@
-import type { ManifestEntry, Manifest, SpecMDConfig } from '$lib/types';
+import type { ManifestEntry, Manifest, DocsMDConfig } from '$lib/types';
 
 class DocsState {
   manifest = $state<ManifestEntry[]>([]);
-  config = $state<SpecMDConfig | null>(null);
+  config = $state<DocsMDConfig | null>(null);
   activeDocPath = $state<string | null>(null);
   loading = $state(false);
 
@@ -25,7 +25,7 @@ class DocsState {
       .slice(0, 10)
   );
 
-  initialize(manifest: Manifest, config: SpecMDConfig) {
+  initialize(manifest: Manifest, config: DocsMDConfig) {
     this.manifest = manifest.documents;
     this.config = config;
   }

@@ -2,7 +2,7 @@
 title: "Use unified/remark/rehype for Markdown Rendering"
 type: adr
 status: accepted
-owner: "@specmd"
+owner: "@docsmd"
 created: "2026-03-26"
 updated: "2026-03-27"
 tags: [markdown, rendering, architecture]
@@ -13,7 +13,7 @@ decision_date: "2026-03-26"
 
 ## Context
 
-spec.md needs to render Markdown documents to HTML with support for GFM (GitHub Flavored Markdown), syntax highlighting, and extensibility for future plugins.
+docs.md needs to render Markdown documents to HTML with support for GFM (GitHub Flavored Markdown), syntax highlighting, and extensibility for future plugins.
 
 ## Decision
 

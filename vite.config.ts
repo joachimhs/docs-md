@@ -16,6 +16,6 @@ export default defineConfig({
       '$lib': resolve(__dirname, 'src/lib'),
       '$env/dynamic/private': resolve(__dirname, 'tests/mocks/env.ts'),
     },
-    env: { SPECMD_DOCS_DIR: 'test-docs' },
+    env: { DOCSMD_DOCS_DIR: 'test-docs' },
   },
 });

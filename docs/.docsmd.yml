@@ -1,4 +1,4 @@
 spec_version: "0.1.0"
 project:
-  name: "spec.md"
+  name: "docs.md"
   description: "A Git-native documentation browser built with SvelteKit and Svelte 5"
