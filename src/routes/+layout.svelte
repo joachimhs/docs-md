@@ -6,8 +6,10 @@
   import { ui } from '$lib/stores/ui.svelte';
   import ThemeToggle from '$lib/components/ThemeToggle.svelte';
   import Sidebar from '$lib/components/Sidebar.svelte';
+  import SearchBar from '$lib/components/SearchBar.svelte';
 
   let { data, children }: { data: LayoutData; children: Snippet } = $props();
+  let searchBar = $state<{ focusInput: () => void } | null>(null);
 
   // Initialize stores from server data
   $effect(() => {
@@ -25,13 +27,30 @@
       document.documentElement.setAttribute('data-theme', ui.resolvedTheme);
     }
   });
+
+  // Global Ctrl+K / Cmd+K shortcut to focus search
+  $effect(() => {
+    if (typeof window === 'undefined') return;
+
+    function handleGlobalKeydown(e: KeyboardEvent) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        searchBar?.focusInput();
+      }
+    }
+
+    window.addEventListener('keydown', handleGlobalKeydown);
+    return () => window.removeEventListener('keydown', handleGlobalKeydown);
+  });
 </script>
 
 <div class="app-layout">
   <header class="app-header">
     <button class="hamburger" onclick={() => ui.toggleSidebar()}>☰</button>
     <a href="/" class="logo">{docs.config?.project.name || 'spec.md'}</a>
-    <div class="header-search"><!-- SearchBar will go here later --></div>
+    <div class="header-search">
+      <SearchBar bind:this={searchBar} />
+    </div>
     <ThemeToggle />
   </header>
 
