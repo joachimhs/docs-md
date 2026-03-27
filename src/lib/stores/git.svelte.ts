@@ -6,6 +6,7 @@ class GitState {
   behind = $state(0);
   loading = $state(false);
   isRepo = $state(true);
+  hasRemote = $state(false);
 
   isModified(docPath: string) {
     return this.modified.some(f => f.endsWith(docPath)) ||
@@ -27,6 +28,7 @@ class GitState {
       this.added = data.added;
       this.ahead = data.ahead;
       this.behind = data.behind;
+      this.hasRemote = data.hasRemote ?? false;
       this.isRepo = true;
     } catch {
       this.isRepo = false;

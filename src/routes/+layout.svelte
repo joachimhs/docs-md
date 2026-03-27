@@ -88,18 +88,22 @@
         {#if gitState.modifiedCount > 0}
           <span class="git-modified-badge">{gitState.modifiedCount}</span>
         {/if}
-        {#if gitState.ahead > 0}
-          <button
-            class="btn-push"
-            onclick={handleGlobalPush}
-            disabled={pushing}
-            title="Push {gitState.ahead} commit{gitState.ahead > 1 ? 's' : ''} to remote"
-          >
-            {pushing ? 'Pushing…' : `Push ↑${gitState.ahead}`}
-          </button>
-        {/if}
-        {#if gitState.behind > 0}
-          <span class="git-sync">↓{gitState.behind}</span>
+        {#if !gitState.hasRemote}
+          <span class="git-no-remote" title="No git remote configured. Run: git remote add origin <url>">no remote</span>
+        {:else}
+          {#if gitState.ahead > 0}
+            <button
+              class="btn-push"
+              onclick={handleGlobalPush}
+              disabled={pushing}
+              title="Push {gitState.ahead} commit{gitState.ahead > 1 ? 's' : ''} to remote"
+            >
+              {pushing ? 'Pushing…' : `Push ↑${gitState.ahead}`}
+            </button>
+          {/if}
+          {#if gitState.behind > 0}
+            <span class="git-sync">↓{gitState.behind}</span>
+          {/if}
         {/if}
       </div>
     {/if}
@@ -225,6 +229,13 @@
     font-size: var(--text-xs);
     color: var(--color-text-muted);
     font-family: var(--font-mono);
+  }
+
+  .git-no-remote {
+    font-size: var(--text-xs);
+    color: var(--color-warning);
+    font-style: italic;
+    cursor: help;
   }
 
   .btn-push {

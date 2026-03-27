@@ -4,6 +4,7 @@
     showPreview,
     isDirty,
     gitAhead = 0,
+    hasRemote = false,
     onModeChange,
     onPreviewToggle,
     onSave,
@@ -15,6 +16,7 @@
     showPreview: boolean;
     isDirty: boolean;
     gitAhead?: number;
+    hasRemote?: boolean;
     onModeChange: (mode: 'richtext' | 'markdown') => void;
     onPreviewToggle: () => void;
     onSave: () => void;
@@ -81,18 +83,20 @@
       Commit
     </button>
 
-    <button
-      class="toolbar-btn push-btn"
-      onclick={onPush}
-      disabled={gitAhead === 0}
-      title={gitAhead > 0 ? `Push ${gitAhead} commit(s)` : 'Nothing to push'}
-    >
-      {#if gitAhead > 0}
-        Push ({gitAhead})
-      {:else}
-        Push
-      {/if}
-    </button>
+    {#if hasRemote}
+      <button
+        class="toolbar-btn push-btn"
+        onclick={onPush}
+        disabled={gitAhead === 0}
+        title={gitAhead > 0 ? `Push ${gitAhead} commit(s)` : 'Nothing to push'}
+      >
+        {#if gitAhead > 0}
+          Push ({gitAhead})
+        {:else}
+          Push
+        {/if}
+      </button>
+    {/if}
 
     <div class="toolbar-divider" aria-hidden="true"></div>
 

@@ -23,6 +23,15 @@ export async function getDocsStatus() {
   const docsPrefix = relative(REPO_ROOT, DOCS_ROOT);
   const filterDocs = (files: string[]) => files.filter(f => f.startsWith(docsPrefix + '/') || f.startsWith(docsPrefix + '\\'));
 
+  // Check if any remote is configured
+  let hasRemote = false;
+  try {
+    const remotes = await git.getRemotes();
+    hasRemote = remotes.length > 0;
+  } catch {
+    // ignore
+  }
+
   return {
     branch: status.current || 'unknown',
     modified: filterDocs(status.modified),
@@ -32,6 +41,7 @@ export async function getDocsStatus() {
     ahead: status.ahead,
     behind: status.behind,
     isClean: status.isClean(),
+    hasRemote,
   };
 }
 

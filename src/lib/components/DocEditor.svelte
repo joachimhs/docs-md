@@ -153,6 +153,7 @@
     {showPreview}
     {isDirty}
     gitAhead={gitState.ahead}
+    hasRemote={gitState.hasRemote}
     onModeChange={handleModeChange}
     onPreviewToggle={handlePreviewToggle}
     onSave={handleSave}
