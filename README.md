@@ -26,7 +26,7 @@ docs.md keeps documentation **in your repo**, versioned with Git, editable by an
 
 ```bash
 # Install globally
-npm i -g docsmd
+npm i -g @joachimhskeie/docsmd
 
 # In any Git repository
 docsmd init "My Project"

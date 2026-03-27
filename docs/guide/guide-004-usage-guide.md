@@ -17,7 +17,7 @@ This is the comprehensive reference for using docs.md — from initial setup to 
 ### Global install (recommended for end users)
 
 ```bash
-npm i -g docsmd
+npm i -g @joachimhskeie/docsmd
 ```
 
 Requires Node.js 20 or later.

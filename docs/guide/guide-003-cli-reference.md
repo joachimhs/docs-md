@@ -12,7 +12,7 @@ tags: [cli, commands]
 The `docsmd` CLI packages the docs.md web application as a globally installable tool.
 
 ```bash
-npm i -g docsmd
+npm i -g @joachimhskeie/docsmd
 ```
 
 ## Commands

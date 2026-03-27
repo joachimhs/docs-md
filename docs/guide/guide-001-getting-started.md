@@ -14,7 +14,7 @@ tags: [setup, development]
 ### Install globally
 
 ```bash
-npm i -g docsmd
+npm i -g @joachimhskeie/docsmd
 ```
 
 Requires Node.js 20+.

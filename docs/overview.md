@@ -20,7 +20,7 @@ Phases 1-3 are implemented. docs.md is a distributable documentation tool.
 ### CLI
 
 ```bash
-npm i -g docsmd
+npm i -g @joachimhskeie/docsmd
 ```
 
 | Command                 | Description                                  |
@@ -94,7 +94,7 @@ npm run build                    # Build web + CLI
 node dist/cli/index.js browse   # Start server
 ```
 
-Or after `npm i -g docsmd`:
+Or after `npm i -g @joachimhskeie/docsmd`:
 
 ```bash
 cd my-project
