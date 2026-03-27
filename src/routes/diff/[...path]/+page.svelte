@@ -38,11 +38,11 @@
 
   onMount(loadDiff);
 
-  // Re-render when format changes (only if we have a hash to load from)
+  // Re-render when format changes — track only outputFormat, not loading
+  let prevFormat = $state(outputFormat);
   $effect(() => {
-    // Access outputFormat to track changes
-    const _fmt = outputFormat;
-    if (fromHash && !loading) {
+    if (outputFormat !== prevFormat) {
+      prevFormat = outputFormat;
       loadDiff();
     }
   });
