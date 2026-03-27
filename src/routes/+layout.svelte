@@ -47,11 +47,12 @@
       });
       const data = await res.json();
       if (!res.ok || !data.pushed) {
-        console.error('Push failed:', data.reason || 'unknown error');
+        const reason = data.reason || 'Push failed';
+        window.alert(reason);
       }
       await gitState.refresh();
     } catch (e) {
-      console.error('Push error:', e);
+      window.alert('Push failed: network error');
     } finally {
       pushing = false;
     }

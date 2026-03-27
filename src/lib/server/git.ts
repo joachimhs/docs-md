@@ -127,8 +127,33 @@ export async function commitDocChange(
 export async function pushChanges() {
   const git = getGit();
 
-  // Push with --set-upstream so the tracking branch is created if needed
   const branch = (await git.status()).current || 'main';
-  await git.push(['-u', 'origin', branch]);
-  return { pushed: true, ahead: 0 };
+
+  try {
+    // Push with --set-upstream so the tracking branch is created if needed
+    await git.push(['-u', 'origin', branch]);
+    return { pushed: true, ahead: 0 };
+  } catch (e: any) {
+    const msg = e.message || '';
+
+    // Detect common auth failures and return helpful messages
+    if (msg.includes('Authentication failed') || msg.includes('could not read Username') || msg.includes('terminal prompts disabled')) {
+      throw new Error(
+        'Authentication failed. Set up one of:\n' +
+        '  • SSH: clone with git@github.com:user/repo.git\n' +
+        '  • GitHub CLI: run "gh auth login"\n' +
+        '  • HTTPS token: run "git remote set-url origin https://<token>@github.com/user/repo.git"'
+      );
+    }
+
+    if (msg.includes('Permission denied') || msg.includes('403')) {
+      throw new Error('Permission denied. Check that your account has push access to this repository.');
+    }
+
+    if (msg.includes('rejected') || msg.includes('non-fast-forward')) {
+      throw new Error('Push rejected — the remote has changes you don\'t have locally. Pull first.');
+    }
+
+    throw e;
+  }
 }

@@ -111,13 +111,13 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({}),
       });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: 'Push failed' }));
-        console.error('Push failed:', err);
+      const data = await res.json().catch(() => ({ pushed: false, reason: 'Push failed' }));
+      if (!res.ok || !data.pushed) {
+        window.alert(data.reason || 'Push failed');
       }
       await gitState.refresh();
     } catch (e) {
-      console.error('Push error:', e);
+      window.alert('Push failed: network error');
     }
   }
 
