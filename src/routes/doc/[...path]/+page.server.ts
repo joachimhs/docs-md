@@ -1,5 +1,5 @@
 import type { PageServerLoad } from './$types';
-import { readDocument } from '$lib/server/docs';
+import { readDocument, findBacklinks } from '$lib/server/docs';
 import { error } from '@sveltejs/kit';
 
 const isStatic = process.env.DOCSMD_ADAPTER === 'static';
@@ -27,7 +27,8 @@ export const load: PageServerLoad = async ({ params }) => {
 
   try {
     const document = await readDocument(fullPath);
-    return { document };
+    const backlinks = findBacklinks(fullPath);
+    return { document, backlinks };
   } catch (e) {
     throw error(404, `Document not found: ${fullPath}`);
   }

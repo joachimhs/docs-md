@@ -105,6 +105,28 @@ AI agents can read, create, and update docs through:
 - Direct filesystem access (they're just Markdown files)
 - REST API (`GET/POST/PUT/DELETE /api/docs`, `GET /api/search`)
 
+### Mermaid Diagrams
+
+Fenced code blocks with the `mermaid` language are rendered as interactive diagrams — flowcharts, sequence diagrams, class diagrams, and more. Adapts to light/dark theme.
+
+### Backlinks
+
+Each document page shows a "Referenced by" section listing all documents that link to it, making it easy to trace ADR chains, spec dependencies, and cross-references.
+
+### Status Workflow
+
+Change a document's status directly from the viewer — no need to open the editor. "Move to: accepted" buttons appear for each valid status transition.
+
+### Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+K` | Focus search |
+| `Ctrl+E` | Edit document |
+| `Ctrl+S` | Save (in editor) |
+| `Ctrl+Enter` | Commit (in editor) |
+| `Ctrl+P` | Print / export PDF |
+
 ### Live File Watching
 
 External changes to `.md` files (from your editor, AI agents, `git pull`, etc.) are detected automatically. The sidebar and search update on the next page load — no restart needed.

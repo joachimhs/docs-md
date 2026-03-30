@@ -305,14 +305,29 @@ Switch between modes using the segmented toggle in the toolbar. Content is prese
 
 The default mode is configurable via `ui.default_editor` in `.docsmd.yml`.
 
-### Keyboard shortcuts (Markdown mode)
+### Keyboard shortcuts
+
+**Global (any page):**
 
 | Shortcut | Action |
 |----------|--------|
-| `Ctrl+B` / `Cmd+B` | Bold (wraps selection in `**`) |
-| `Ctrl+I` / `Cmd+I` | Italic (wraps selection in `*`) |
-| `Ctrl+K` / `Cmd+K` | Insert link (`[text](url)`) |
+| `Ctrl+K` / `Cmd+K` | Focus search bar |
+
+**Document viewer:**
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+E` / `Cmd+E` | Edit document |
+| `Ctrl+P` / `Cmd+P` | Print / export to PDF |
+
+**Editor:**
+
+| Shortcut | Action |
+|----------|--------|
 | `Ctrl+S` / `Cmd+S` | Save document |
+| `Ctrl+Enter` / `Cmd+Enter` | Commit |
+| `Ctrl+B` / `Cmd+B` | Bold (Markdown mode) |
+| `Ctrl+I` / `Cmd+I` | Italic (Markdown mode) |
 
 ### Images
 
@@ -465,6 +480,85 @@ If the project directory is not a Git repository:
 - Commit and Push buttons are disabled
 - History and Diff pages show an error message
 - Save still works (writes to disk without Git)
+
+---
+
+## Status Workflow
+
+Each document type has a set of valid statuses (e.g., ADRs go through proposed, accepted, rejected, deprecated, superseded). Instead of opening the editor to change a status, use the **workflow buttons** on the document page.
+
+When viewing a document, the toolbar shows "Move to:" buttons for each valid status. Click one to update the status immediately. Only users with edit permission see these buttons.
+
+---
+
+## Backlinks
+
+When viewing a document, a "Referenced by" section appears at the bottom showing all other documents that link to it — either via markdown links in the body or via frontmatter fields (`related`, `supersedes`, `superseded_by`).
+
+This is useful for tracking ADR chains (which decisions supersede others) and seeing which guides reference a particular spec.
+
+---
+
+## Mermaid Diagrams
+
+Fenced code blocks with the `mermaid` language are rendered as interactive diagrams:
+
+````markdown
+```mermaid
+graph TD
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Do thing]
+    B -->|No| D[Don't]
+```
+````
+
+Here is a live example showing the docs.md document workflow:
+
+```mermaid
+flowchart LR
+    Create[Create Document] --> Draft[Draft]
+    Draft --> Review[Review]
+    Review --> Approved[Approved]
+    Review --> Rejected[Rejected]
+    Approved --> Implemented[Implemented]
+    Implemented --> Deprecated[Deprecated]
+```
+
+And a sequence diagram showing the save-commit-push flow:
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Editor
+    participant Server
+    participant Git
+
+    User->>Editor: Edit document
+    User->>Editor: Ctrl+S
+    Editor->>Server: PUT /api/docs/{id}
+    Server-->>Editor: Saved
+    User->>Editor: Ctrl+Enter
+    Editor->>Server: POST /api/git/commit
+    Server->>Git: git add + commit
+    Git-->>Server: Committed
+    Server-->>Editor: Done
+    User->>Editor: Push
+    Editor->>Server: POST /api/git/push
+    Server->>Git: git push
+    Git-->>Server: Pushed
+```
+
+Supported diagram types include flowcharts, sequence diagrams, class diagrams, state diagrams, Gantt charts, and more. See the [Mermaid documentation](https://mermaid.js.org/) for the full syntax reference.
+
+Diagrams are rendered client-side and automatically adapt to light/dark theme.
+
+---
+
+## Print / Export to PDF
+
+Click **Print** on any document page (or press `Ctrl+P` / `Cmd+P`) to open the browser's print dialog. The print view hides the header, sidebar, toolbar, and table of contents, showing only the document content.
+
+To save as PDF, select "Save as PDF" as the printer destination in the print dialog.
 
 ---
 

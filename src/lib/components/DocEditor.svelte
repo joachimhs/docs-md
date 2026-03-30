@@ -136,6 +136,27 @@
   function handlePreviewToggle() {
     showPreview = !showPreview;
   }
+
+  // Keyboard shortcuts for the editor
+  $effect(() => {
+    if (typeof window === 'undefined') return;
+
+    function handleEditorKeydown(e: KeyboardEvent) {
+      // Ctrl+S / Cmd+S → Save (also handled by CodeMirror when editor focused)
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        handleSave();
+      }
+      // Ctrl+Enter / Cmd+Enter → Commit
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        handleCommit();
+      }
+    }
+
+    window.addEventListener('keydown', handleEditorKeydown);
+    return () => window.removeEventListener('keydown', handleEditorKeydown);
+  });
 </script>
 
 <div class="doc-editor">

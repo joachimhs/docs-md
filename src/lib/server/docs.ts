@@ -3,7 +3,7 @@ import { resolve, relative, join, basename, dirname, normalize } from 'node:path
 import matter from 'gray-matter';
 import { DOCS_ROOT, loadConfig } from './config';
 import { renderMarkdown } from './markdown';
-import { generateManifest, invalidateManifest } from './manifest';
+import { generateManifest, invalidateManifest, getManifest } from './manifest';
 import type { DocFrontmatter, ManifestEntry, ParsedDocument, DocHeading } from '$lib/types';
 
 /**
@@ -345,6 +345,57 @@ export function updateDocument(
 
   const id = generateId(mergedFrontmatter.type || 'doc', docPath);
   return { id, path: docPath, updated: today };
+}
+
+/**
+ * Find all documents that reference the given document path.
+ * Scans markdown bodies for links like [text](/doc/path) or [text](path.md) or (path).
+ */
+export function findBacklinks(docPath: string): Array<{ id: string; title: string; path: string; type: string }> {
+  const manifest = getManifest();
+  const backlinks: Array<{ id: string; title: string; path: string; type: string }> = [];
+
+  // The target doc can be referenced in several ways:
+  // - As a relative path: guide/guide-001-getting-started.md or guide/guide-001-getting-started
+  // - As a URL path: /doc/guide/guide-001-getting-started
+  // - Via frontmatter fields: related, supersedes, superseded_by
+  const pathWithoutMd = docPath.replace(/\.md$/, '');
+  const searchPatterns = [docPath, pathWithoutMd];
+
+  for (const entry of manifest.documents) {
+    if (entry.path === docPath) continue; // Skip self
+
+    const absolutePath = resolve(DOCS_ROOT, entry.path);
+    if (!existsSync(absolutePath)) continue;
+
+    const raw = readFileSync(absolutePath, 'utf8');
+    const { data, content } = matter(raw);
+
+    // Check frontmatter references
+    const fmRefs = [
+      ...(Array.isArray(data.related) ? data.related : []),
+      data.supersedes,
+      data.superseded_by,
+    ].filter(Boolean);
+
+    const hasFmRef = fmRefs.some(ref =>
+      searchPatterns.some(p => String(ref).includes(p))
+    );
+
+    // Check markdown body for links containing the path
+    const hasBodyRef = searchPatterns.some(p => content.includes(p));
+
+    if (hasFmRef || hasBodyRef) {
+      backlinks.push({
+        id: entry.id,
+        title: entry.title,
+        path: entry.path,
+        type: entry.type,
+      });
+    }
+  }
+
+  return backlinks;
 }
 
 /**

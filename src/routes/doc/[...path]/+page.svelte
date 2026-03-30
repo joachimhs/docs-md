@@ -3,6 +3,9 @@
   import TableOfContents from '$lib/components/TableOfContents.svelte';
   import BreadcrumbNav from '$lib/components/BreadcrumbNav.svelte';
   import LoginPrompt from '$lib/components/LoginPrompt.svelte';
+  import ProseContent from '$lib/components/ProseContent.svelte';
+  import Backlinks from '$lib/components/Backlinks.svelte';
+  import StatusActions from '$lib/components/StatusActions.svelte';
   import { docs } from '$lib/stores/docs.svelte';
   import { page } from '$app/stores';
 
@@ -20,6 +23,34 @@
   // Set active doc path in store so sidebar highlights the current doc
   $effect(() => {
     docs.activeDocPath = data.document.path;
+  });
+
+  // Get type config for status workflow
+  const typeConfig = $derived(
+    docs.config?.types?.[data.document.frontmatter.type || 'doc']
+  );
+
+  // Keyboard shortcuts
+  $effect(() => {
+    if (typeof window === 'undefined') return;
+
+    function handleKeydown(e: KeyboardEvent) {
+      // Ctrl+E / Cmd+E → Edit
+      if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
+        e.preventDefault();
+        if (canEdit()) {
+          window.location.href = `/edit/${data.document.path.replace(/\.md$/, '')}`;
+        }
+      }
+      // Ctrl+P / Cmd+P → Print (override browser default)
+      if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+        e.preventDefault();
+        window.print();
+      }
+    }
+
+    window.addEventListener('keydown', handleKeydown);
+    return () => window.removeEventListener('keydown', handleKeydown);
   });
 </script>
 
@@ -47,15 +78,29 @@
       >
         {showRaw ? 'Rendered' : 'Raw'}
       </button>
+      <button class="toolbar-btn" onclick={() => window.print()} title="Print or save as PDF">
+        Print
+      </button>
+      {#if canEdit()}
+        <StatusActions
+          frontmatter={data.document.frontmatter}
+          typeConfig={typeConfig}
+          docPath={data.document.path}
+          onStatusChange={() => {
+            // Refresh the page to show updated status
+            window.location.reload();
+          }}
+        />
+      {/if}
     </div>
 
     {#if showRaw}
       <pre class="raw-markdown">{data.document.body}</pre>
     {:else}
-      <article class="prose">
-        {@html data.document.html}
-      </article>
+      <ProseContent html={data.document.html} />
     {/if}
+
+    <Backlinks backlinks={data.backlinks} />
   </div>
 
   {#if data.document.headings.length > 0}
@@ -82,6 +127,8 @@
     display: flex;
     gap: var(--spacing-sm);
     margin-bottom: var(--spacing-lg);
+    flex-wrap: wrap;
+    align-items: center;
   }
 
   .toolbar-btn {

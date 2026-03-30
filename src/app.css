@@ -401,3 +401,44 @@ a:hover {
   line-height: 1.5;
   white-space: nowrap;
 }
+
+@media print {
+  .app-header,
+  .app-sidebar,
+  .app-footer,
+  .sidebar-backdrop,
+  .doc-toolbar,
+  .doc-toc,
+  .backlinks,
+  .pull-blocked-banner {
+    display: none !important;
+  }
+
+  .app-body {
+    display: block !important;
+  }
+
+  .app-main {
+    padding: 0 !important;
+  }
+
+  .prose {
+    max-width: 100% !important;
+    font-size: 12pt !important;
+    line-height: 1.6 !important;
+  }
+
+  .prose pre {
+    white-space: pre-wrap !important;
+    word-break: break-word !important;
+    border: 1px solid #ccc !important;
+  }
+
+  .prose code {
+    font-size: 10pt !important;
+  }
+
+  a[href]::after {
+    content: none !important;
+  }
+}
