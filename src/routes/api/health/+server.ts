@@ -6,7 +6,6 @@ export const GET = async () => {
   const docsExist = existsSync(DOCS_ROOT);
   return json({
     status: docsExist ? 'healthy' : 'degraded',
-    docs_root: DOCS_ROOT,
     docs_found: docsExist,
     timestamp: new Date().toISOString(),
   });

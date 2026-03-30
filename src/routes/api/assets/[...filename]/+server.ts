@@ -1,7 +1,7 @@
 import type { RequestHandler } from './$types';
 import { error } from '@sveltejs/kit';
 import { readFileSync, existsSync } from 'node:fs';
-import { resolve, extname } from 'node:path';
+import { resolve, extname, normalize } from 'node:path';
 import { DOCS_ROOT } from '$lib/server/config';
 
 const MIME_TYPES: Record<string, string> = {
@@ -15,7 +15,9 @@ const MIME_TYPES: Record<string, string> = {
 };
 
 export const GET: RequestHandler = async ({ params }) => {
-  const filePath = resolve(DOCS_ROOT, '_assets', params.filename);
+  const assetsDir = resolve(DOCS_ROOT, '_assets');
+  const filePath = resolve(assetsDir, normalize(params.filename));
+  if (!filePath.startsWith(assetsDir + '/')) throw error(403, 'Forbidden');
 
   if (!existsSync(filePath)) throw error(404, 'Asset not found');
 

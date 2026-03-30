@@ -7,7 +7,7 @@ export const GET: RequestHandler = async ({ url }) => {
   const type = url.searchParams.get('type') || undefined;
   const status = url.searchParams.get('status') || undefined;
   const tag = url.searchParams.get('tag') || undefined;
-  const limit = parseInt(url.searchParams.get('limit') || '50');
+  const limit = Math.min(parseInt(url.searchParams.get('limit') || '50') || 50, 200);
 
   if (!query.trim()) {
     return json({ query: '', total: 0, results: [], facets: { type: {}, status: {}, tags: {} } });

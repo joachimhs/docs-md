@@ -1,6 +1,27 @@
 import simpleGit, { type SimpleGit } from 'simple-git';
 import { REPO_ROOT, DOCS_ROOT } from './config';
-import { resolve, relative } from 'node:path';
+import { resolve, relative, normalize } from 'node:path';
+
+/**
+ * Resolve a doc path safely within DOCS_ROOT. Throws on path traversal.
+ */
+function safeDocPath(docPath: string): string {
+  const full = resolve(DOCS_ROOT, normalize(docPath));
+  if (!full.startsWith(DOCS_ROOT + '/') && full !== DOCS_ROOT) {
+    throw new Error('Path traversal detected');
+  }
+  return full;
+}
+
+/**
+ * Sanitize a git commit hash — only allow hex digits and ~^ for ancestor refs.
+ */
+function safeHash(hash: string): string {
+  if (!/^[a-f0-9~^]+$/i.test(hash)) {
+    throw new Error('Invalid commit hash');
+  }
+  return hash;
+}
 
 function getGit(): SimpleGit {
   return simpleGit(REPO_ROOT);
@@ -69,7 +90,7 @@ export async function getDocsStatus() {
 
 export async function getFileHistory(docPath: string, limit = 50) {
   const git = getGit();
-  const fullPath = resolve(DOCS_ROOT, docPath);
+  const fullPath = safeDocPath(docPath);
   const relativePath = relative(REPO_ROOT, fullPath);
 
   const log = await git.log({
@@ -89,20 +110,22 @@ export async function getFileHistory(docPath: string, limit = 50) {
 
 export async function getFileDiff(docPath: string, fromHash: string, toHash?: string) {
   const git = getGit();
-  const fullPath = resolve(DOCS_ROOT, docPath);
+  const fullPath = safeDocPath(docPath);
   const relativePath = relative(REPO_ROOT, fullPath);
 
-  const range = toHash ? `${fromHash}..${toHash}` : `${fromHash}~1..${fromHash}`;
+  const from = safeHash(fromHash);
+  const to = toHash ? safeHash(toHash) : undefined;
+  const range = to ? `${from}..${to}` : `${from}~1..${from}`;
   const diff = await git.diff([range, '--', relativePath]);
   return diff;
 }
 
 export async function getFileAtCommit(docPath: string, hash: string): Promise<string> {
   const git = getGit();
-  const fullPath = resolve(DOCS_ROOT, docPath);
+  const fullPath = safeDocPath(docPath);
   const relativePath = relative(REPO_ROOT, fullPath);
 
-  return git.show([`${hash}:${relativePath}`]);
+  return git.show([`${safeHash(hash)}:${relativePath}`]);
 }
 
 export async function commitDocChange(
@@ -111,17 +134,21 @@ export async function commitDocChange(
   author?: { name: string; email: string }
 ) {
   const git = getGit();
-  const fullPath = resolve(DOCS_ROOT, docPath);
+  const fullPath = safeDocPath(docPath);
   const docRelative = relative(REPO_ROOT, fullPath);
 
+  // Only stage the specific doc file
   await git.add([docRelative]);
 
+  // Commit ONLY the specified file — prevents committing other staged files
   const options: Record<string, string> = {};
   if (author) {
-    options['--author'] = `${author.name} <${author.email}>`;
+    const safeName = author.name.replace(/[<>"]/g, '');
+    const safeEmail = author.email.replace(/[<>"]/g, '');
+    options['--author'] = `${safeName} <${safeEmail}>`;
   }
 
-  return git.commit(message, undefined, options);
+  return git.commit(message, [docRelative], options);
 }
 
 /**

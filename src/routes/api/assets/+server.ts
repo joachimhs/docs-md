@@ -10,6 +10,10 @@ export const POST: RequestHandler = async ({ request }) => {
 
   if (!file) throw error(400, 'No file provided');
 
+  // 10MB upload limit
+  const MAX_SIZE = 10 * 1024 * 1024;
+  if (file.size > MAX_SIZE) throw error(413, 'File too large (max 10MB)');
+
   const assetsDir = resolve(DOCS_ROOT, '_assets');
   if (!existsSync(assetsDir)) mkdirSync(assetsDir, { recursive: true });
 

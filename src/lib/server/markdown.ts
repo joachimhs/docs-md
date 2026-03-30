@@ -5,6 +5,26 @@ import remarkRehype from 'remark-rehype';
 import rehypeStringify from 'rehype-stringify';
 import rehypeShiki from '@shikijs/rehype';
 import rehypeSlug from 'rehype-slug';
+import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
+
+// Extend the default sanitization schema to allow Shiki's code highlighting attributes
+const sanitizeSchema = {
+  ...defaultSchema,
+  attributes: {
+    ...defaultSchema.attributes,
+    code: [...(defaultSchema.attributes?.code || []), 'className'],
+    span: [...(defaultSchema.attributes?.span || []), 'className', 'style'],
+    pre: [...(defaultSchema.attributes?.pre || []), 'className', 'style', 'tabIndex'],
+    // Allow id for heading anchors (rehype-slug)
+    '*': [...(defaultSchema.attributes?.['*'] || []), 'id'],
+  },
+  tagNames: [
+    ...(defaultSchema.tagNames || []),
+    'mark', // for search highlight
+  ],
+  // Don't prefix IDs — our TOC and heading anchors depend on clean slugs
+  clobberPrefix: '',
+};
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let processor: any = null;
@@ -15,7 +35,7 @@ async function getProcessor() {
   processor = unified()
     .use(remarkParse)
     .use(remarkGfm)
-    .use(remarkRehype, { allowDangerousHtml: true })
+    .use(remarkRehype)
     .use(rehypeShiki, {
       themes: {
         light: 'github-light',
@@ -23,7 +43,8 @@ async function getProcessor() {
       },
     })
     .use(rehypeSlug)
-    .use(rehypeStringify, { allowDangerousHtml: true });
+    .use(rehypeSanitize, sanitizeSchema)
+    .use(rehypeStringify);
 
   return processor;
 }

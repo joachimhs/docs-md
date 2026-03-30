@@ -1,10 +1,22 @@
 import { readdirSync, readFileSync, statSync, existsSync, writeFileSync, mkdirSync, renameSync } from 'node:fs';
-import { resolve, relative, join, basename, dirname } from 'node:path';
+import { resolve, relative, join, basename, dirname, normalize } from 'node:path';
 import matter from 'gray-matter';
 import { DOCS_ROOT, loadConfig } from './config';
 import { renderMarkdown } from './markdown';
 import { generateManifest, invalidateManifest } from './manifest';
 import type { DocFrontmatter, ManifestEntry, ParsedDocument, DocHeading } from '$lib/types';
+
+/**
+ * Resolve a user-supplied path within DOCS_ROOT safely.
+ * Throws if the resolved path escapes the docs directory (path traversal).
+ */
+export function safePath(userPath: string, base: string = DOCS_ROOT): string {
+  const resolved = resolve(base, normalize(userPath));
+  if (!resolved.startsWith(base + '/') && resolved !== base) {
+    throw new Error('Path traversal detected');
+  }
+  return resolved;
+}
 
 /**
  * Infer document type from relative path.
@@ -195,7 +207,7 @@ export function scanDocs(): ManifestEntry[] {
  * Throws if the file does not exist.
  */
 export async function readDocument(docPath: string): Promise<ParsedDocument> {
-  const absolutePath = resolve(DOCS_ROOT, docPath);
+  const absolutePath = safePath(docPath);
 
   if (!existsSync(absolutePath)) {
     throw new Error(`Document not found: ${docPath}`);
@@ -311,7 +323,7 @@ export function updateDocument(
   docPath: string,
   updates: { frontmatter?: Partial<DocFrontmatter>; body?: string }
 ): { id: string; path: string; updated: string } {
-  const absolutePath = resolve(DOCS_ROOT, docPath);
+  const absolutePath = safePath(docPath);
   if (!existsSync(absolutePath)) throw new Error(`Document not found: ${docPath}`);
 
   const raw = readFileSync(absolutePath, 'utf8');
@@ -340,7 +352,7 @@ export function updateDocument(
  * Throws if the document does not exist.
  */
 export function archiveDocument(docPath: string): { id: string; archived_path: string } {
-  const absolutePath = resolve(DOCS_ROOT, docPath);
+  const absolutePath = safePath(docPath);
   if (!existsSync(absolutePath)) throw new Error(`Document not found: ${docPath}`);
 
   const raw = readFileSync(absolutePath, 'utf8');
