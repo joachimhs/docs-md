@@ -1,7 +1,7 @@
 spec_version: "0.1.0"
 project:
   name: "docs.md"
-  description: "A Git-native documentation browser built with SvelteKit and Svelte 5"
+  description: "Documentation that is Git-able, lives with your codebase, easy for humans and agents to maintain via the IDE, CLI, or web interface."
 auth:
   enabled: true
   mode: simple

@@ -197,7 +197,7 @@ Or use the API: \`DELETE /api/docs/{id}\`
   <section class="agent-section">
     <button class="accordion-toggle" onclick={() => agentSectionOpen = !agentSectionOpen}>
       <span class="accordion-icon" class:open={agentSectionOpen}>&#9654;</span>
-      <h2 class="section-title" style="margin: 0;">Agent Instructions (CLAUDE.md / AGENTS.md)</h2>
+      <h2 class="section-title" style="margin: 0;">Agent Instructions (CLAUDE.md, AGENTS.md, etc)</h2>
     </button>
     {#if agentSectionOpen}
       <div class="agent-content">

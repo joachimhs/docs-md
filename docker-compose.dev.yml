@@ -1,0 +1,15 @@
+version: "3.8"
+services:
+  docsmd:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5176:5176"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - ORIGIN=http://localhost:5176
+      - DOCSMD_DOCS_DIR=docs
+    restart: unless-stopped
